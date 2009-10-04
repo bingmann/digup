@@ -8,6 +8,24 @@ AC_CONFIG_AUX_DIR(acscripts)
 AM_INIT_AUTOMAKE(foreign)
 # AM_MAINTAINER_MODE
 
+# Check for mingw system and set compilation flag.
+
+AC_CANONICAL_HOST
+
+AC_MSG_CHECKING(building on win32)
+case "$host_os" in
+    *cygwin* | *mingw32*)
+        ON_WIN32=1
+	AC_DEFINE(ON_WIN32, 1, "")
+        AC_MSG_RESULT(yes)
+        ;;
+    *)
+        ON_WIN32=0
+	AC_DEFINE(ON_WIN32, 0, "")
+        AC_MSG_RESULT(no)
+        ;;
+esac
+
 # enable full optimization by configure switch
 
 AC_ARG_ENABLE(optimize,

@@ -1429,6 +1429,8 @@ bool dirstack_push(const struct stat* st)
 {
     size_t i;
 
+#if !ON_WIN32 /* win32 under mingw has no inode numbers. */
+
     /* first search in the current stack for the new level */
     for (i = 0; i < dirstacklen; ++i)
     {
@@ -1438,6 +1440,8 @@ bool dirstack_push(const struct stat* st)
 	    return FALSE;
 	}
     }
+
+#endif
 
     /* add new entry */
     if (dirstacklen >= dirstackmax)
