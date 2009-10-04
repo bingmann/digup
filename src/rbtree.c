@@ -38,7 +38,7 @@
  * Tree object struct holding top-level information and function
  * pointers.
  *
- * - compare_keys(a,b) should return 1 if *a > *b, -1 if *a < *b, and
+ * - compare_keys(a,b) should return >0 if *a > *b, <0 if *a < *b, and
  *   0 otherwise.
  * - destroy_xyz(a) takes a pointer to either key or value object and
  *   must free it accordingly.
@@ -201,7 +201,7 @@ static void rb_insert_helper(struct rb_tree *tree, struct rb_node *z)
     while (x != nil)
     {
 	y = x;
-	if (1 == tree->compare_keys(x->key, z->key)) { /* x.key > z.key */
+	if (tree->compare_keys(x->key, z->key) > 0) { /* x.key > z.key */
 	    x = x->left;
 	}
 	else { /* x,key <= z.key */
@@ -210,9 +210,10 @@ static void rb_insert_helper(struct rb_tree *tree, struct rb_node *z)
     }
     z->parent = y;
     if ( (y == tree->root) ||
-	 (1 == tree->compare_keys(y->key, z->key)) ) { /* y.key > z.key */
+	 (tree->compare_keys(y->key, z->key) > 0) ) { /* y.key > z.key */
 	y->left = z;
-    } else {
+    }
+    else {
 	y->right = z;
     }
 
@@ -437,7 +438,7 @@ struct rb_node *rb_find(struct rb_tree *tree, const void *key)
 
     while (cmpval != 0)
     {
-	if (cmpval == 1) { /* x->key > q */
+	if (cmpval > 0) { /* x->key > q */
 	    x = x->left;
 	}
 	else {

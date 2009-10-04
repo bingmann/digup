@@ -48,7 +48,7 @@ struct rb_tree;
  * Create a new red-black tree object. Function pointers to all
  * necessary callbacks must be provided. Returns a new tree object.
  *
- * - compare_keys(a,b) should return 1 if *a > *b, -1 if *a < *b, and
+ * - compare_keys(a,b) should return >0 if *a > *b, <0 if *a < *b, and
  *   0 otherwise.
  * - destroy_xyz(a) takes a pointer to either key or value object and
  *   must free it accordingly.
