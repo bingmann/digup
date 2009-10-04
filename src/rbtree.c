@@ -113,7 +113,7 @@ unsigned int rb_size(struct rb_tree *tree)
  */
 struct rb_node *rb_begin(struct rb_tree *tree)
 {
-    struct rb_node *x = tree->root;
+    struct rb_node *x = tree->root->left;
 
     while (x->left != tree->nil)
 	x = x->left;
@@ -286,8 +286,7 @@ struct rb_node *rb_insert(struct rb_tree *tree, void *key, void *value)
 
     ++tree->size;
 
-    assert(!tree->nil->red); /* nil not red in RBTreeInsert */
-    assert(!tree->root->red); /* root not red in RBTreeInsert */
+    assert(rb_verify(tree));
 
     return newnode;
 }
@@ -585,7 +584,77 @@ void rb_delete(struct rb_tree *tree, struct rb_node *z)
   
     --tree->size;
 
-    assert(!tree->nil->red); /* nil not black in RBDelete */
+    assert(rb_verify(tree));
+}
+
+/**
+ * Verify red-black tree invariants: the root is black, both children
+ * of a red node are black and every path from root to leaf has the
+ * same number of black nodes.
+ */
+static int rb_verify_helper(struct rb_tree *tree, struct rb_node *z, int blacks, int *blackmatch, unsigned int *count)
+{
+    if (z->red)
+    {
+	/* both children of a red node must be black */
+	if (z->left->red) return 0;
+	if (z->right->red) return 0;
+    }
+
+    if (!z->red) ++blacks;
+
+    if (++(*count) > tree->size)
+	return 0;
+
+    if (z->left != tree->nil) {
+	if (!rb_verify_helper(tree, z->left, blacks, blackmatch, count))
+	    return 0;
+    }
+    else {
+	if (*blackmatch < 0)
+	    *blackmatch = blacks;
+	else if (*blackmatch != blacks)
+	    return 0;
+    }
+
+    if (z->right != tree->nil) {
+	if (!rb_verify_helper(tree, z->right, blacks, blackmatch, count))
+	    return 0;
+    }
+    else {
+	if (*blackmatch < 0)
+	    *blackmatch = blacks;
+	else if (*blackmatch != blacks)
+	    return 0;
+    }
+
+    return 1;
+}
+
+/**
+ * Verify red-black tree invariants: the root is black, both children
+ * of a red node are black and every path from root to leaf has the
+ * same number of black nodes.
+ */
+int rb_verify(struct rb_tree *tree)
+{
+    int blackmatch = -1;
+    unsigned int count = 0;
+
+    /* nil must be black. */
+    if (tree->nil->red) return 0;
+
+    /* the root must always be black */
+    if (tree->root->left->red) return 0;
+
+    if (tree->root->left != tree->nil) {
+	if (!rb_verify_helper(tree, tree->root->left, 0, &blackmatch, &count))
+	    return 0;
+    }
+
+    if (count != tree->size) return 0;
+
+    return 1;
 }
 
 /*****************************************************************************/

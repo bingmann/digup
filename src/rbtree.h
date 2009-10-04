@@ -122,6 +122,13 @@ struct rb_node *rb_find(struct rb_tree *tree, const void *key);
  */
 void rb_delete(struct rb_tree *tree, struct rb_node *z);
 
+/**
+ * Verify red-black tree invariants: the root is black, both children
+ * of a red node are black and every path from root to leaf has the
+ * same number of black nodes.
+ */
+int rb_verify(struct rb_tree *tree);
+
 #endif /* _RBTREE_H */
 
 /*****************************************************************************/
