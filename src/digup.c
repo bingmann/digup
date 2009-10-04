@@ -30,7 +30,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <time.h>
@@ -201,6 +200,7 @@ static int asprintf(char **strp, const char *fmt, ...)
 static ssize_t getdelims(char **lineptr, size_t *n, const char *delims, FILE *stream)
 {
     void *tmp;
+    char *d;
     int c;
     size_t i;
 
@@ -221,8 +221,14 @@ static ssize_t getdelims(char **lineptr, size_t *n, const char *delims, FILE *st
 	    *lineptr = tmp;
 	    *n += GETLINE_BLOCK_SIZE;
 	}
+
 	(*lineptr)[i++] = (unsigned char)c;
-	if (index(delims, c)) break;
+
+	d = delims;
+	while (*d) {
+	    if ((unsigned char)c == *d++) break;
+	}
+	if (*d != '\0') break;
     }
     if (i != 0) (*lineptr)[i] = '\0';
 
