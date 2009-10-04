@@ -31,7 +31,21 @@
 #include <stddef.h>
 #include <string.h>
 
-#if __BYTE_ORDER == __BIG_ENDIAN
+#if HAVE_ENDIAN_H
+
+#include <endian.h>
+#define WORDS_ARE_BIGENDIAN (__BYTE_ORDER == __BIG_ENDIAN)
+
+#elif HAVE_SYS_PARAM_H
+
+#include <sys/param.h>
+#define WORDS_ARE_BIGENDIAN (BYTE_ORDER == BIG_ENDIAN)
+
+#else
+#error "Cannot determine system endianness."
+#endif
+
+#if WORDS_ARE_BIGENDIAN
 # define SWAP(n) (n)
 #else
 # define SWAP(n)								\

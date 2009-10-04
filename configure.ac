@@ -60,6 +60,11 @@ AC_PROG_CC
 
 AC_CHECK_FUNCS([strndup asprintf getline lstat readlink])
 
+# check for include files
+
+AC_CHECK_HEADER(endian.h, [AC_DEFINE(HAVE_ENDIAN_H, 1, "")], [AC_DEFINE(HAVE_ENDIAN_H, 0, "")])
+AC_CHECK_HEADER(sys/param.h, [AC_DEFINE(HAVE_SYS_PARAM_H, 1, "")], [AC_DEFINE(HAVE_SYS_PARAM_H, 0, "")])
+
 # Output transformed files.
 
 AC_CONFIG_FILES([Makefile

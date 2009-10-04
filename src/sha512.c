@@ -48,7 +48,21 @@ typedef uint64_t u64;
 #define u64shr(x, n) ((x) >> (n))
 #define u64rol(x, n) u64or (u64shl (x, n), u64shr (x, 64 - n))
 
-#ifdef WORDS_BIGENDIAN
+#if HAVE_ENDIAN_H
+
+#include <endian.h>
+#define WORDS_ARE_BIGENDIAN (__BYTE_ORDER == __BIG_ENDIAN)
+
+#elif HAVE_SYS_PARAM_H
+
+#include <sys/param.h>
+#define WORDS_ARE_BIGENDIAN (BYTE_ORDER == BIG_ENDIAN)
+
+#else
+#error "Cannot determine system endianness."
+#endif
+
+#if WORDS_ARE_BIGENDIAN
 # define SWAP(n) (n)
 #else
 # define SWAP(n) \
