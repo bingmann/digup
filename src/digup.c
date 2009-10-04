@@ -399,7 +399,7 @@ bool digest_file2(const char* filepath, struct digest_ctx* digctx, char** outdig
     if (fd < 0)
     {
 	if (gopt_verbose >= 2) {
-	    fprintf(stdout, " ERROR. Could not open file: %s.\n",
+	    fprintf(stdout, "ERROR. Could not open file: %s.\n",
 		    strerror(errno));
 	}
 	else if (gopt_verbose >= 1) {
@@ -429,7 +429,7 @@ bool digest_file2(const char* filepath, struct digest_ctx* digctx, char** outdig
     if (rb != 0)
     {
 	if (gopt_verbose >= 2) {
-	    fprintf(stdout, " ERROR. Could not read file: %s.\n",
+	    fprintf(stdout, "ERROR. Could not read file: %s.\n",
 		    strerror(errno));
 	}
 	else if (gopt_verbose >= 1) {
@@ -1160,7 +1160,7 @@ bool process_file(const char* filepath, const struct stat* st)
 
 		    if (filenode == NULL)
 		    {
-			fprintf(stderr, "%s: internal error. Cannot find entry for matching file.\n",
+			fprintf(stderr, "\n%s: internal error. Cannot find entry for matching file.\n",
 				g_progname);
 		    }
 		    else if (((struct FileInfo*)filenode->value)->status == FS_UNSEEN)
@@ -1173,7 +1173,7 @@ bool process_file(const char* filepath, const struct stat* st)
 		    }
 		    else
 		    {
-			fprintf(stderr, "%s: renamed original file still existed when scanning.\n",
+			fprintf(stderr, "\n%s: renamed original file still existed when scanning.\n",
 				g_progname);
 		    }
 		}
@@ -1186,7 +1186,7 @@ bool process_file(const char* filepath, const struct stat* st)
 		fileinfo->status = FS_COPIED;
 		++g_filelist_copied;
 		if (gopt_verbose >= 2) {
-		    fprintf(stdout, "copied.\n");
+		    fprintf(stdout, " copied.\n");
 		}
 		else if (gopt_verbose == 1) {
 		    fprintf(stdout, "%s copied.\n", filepath);
@@ -1197,7 +1197,7 @@ bool process_file(const char* filepath, const struct stat* st)
  		fileinfo->status = FS_RENAMED;
 		++g_filelist_renamed;
 		if (gopt_verbose >= 2) {
-		    fprintf(stdout, "renamed.\n");
+		    fprintf(stdout, " renamed.\n");
 		}
 		else if (gopt_verbose == 1) {
 		    fprintf(stdout, "%s renamed.\n", filepath);
@@ -1216,7 +1216,7 @@ bool process_file(const char* filepath, const struct stat* st)
 	if (fileinfo->status == FS_NEW)
 	{
 	    if (gopt_verbose >= 2) {
-		fprintf(stdout, "new.");
+		fprintf(stdout, " new.");
 	    }
 	    else if (gopt_verbose == 1) {
 		fprintf(stdout, "%s new.", filepath);
