@@ -1708,6 +1708,7 @@ bool cmd_help()
 bool cmd_new()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1716,6 +1717,12 @@ bool cmd_new()
 	if (fileinfo->status != FS_NEW) continue;
 
 	fprintf(stdout, "%s new.\n", (char*)node->key);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no new files encountered during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1724,6 +1731,7 @@ bool cmd_new()
 bool cmd_untouched()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1732,6 +1740,12 @@ bool cmd_untouched()
 	if (fileinfo->status != FS_SEEN) continue;
 
 	fprintf(stdout, "%s untouched.\n", (char*)node->key);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no untouched files encountered during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1740,6 +1754,7 @@ bool cmd_untouched()
 bool cmd_touched()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1748,6 +1763,12 @@ bool cmd_touched()
 	if (fileinfo->status != FS_TOUCHED) continue;
 
 	fprintf(stdout, "%s touched.\n", (char*)node->key);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no touched but unchanged files encountered during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1756,6 +1777,7 @@ bool cmd_touched()
 bool cmd_changed()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1764,6 +1786,12 @@ bool cmd_changed()
 	if (fileinfo->status != FS_CHANGED) continue;
 
 	fprintf(stdout, "%s CHANGED.\n", (char*)node->key);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no changed files encountered during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1772,6 +1800,7 @@ bool cmd_changed()
 bool cmd_deleted()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1780,6 +1809,12 @@ bool cmd_deleted()
 	if (fileinfo->status != FS_UNSEEN) continue;
 
 	fprintf(stdout, "%s DELETED.\n", (char*)node->key);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no deleted files detected during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1788,14 +1823,21 @@ bool cmd_deleted()
 bool cmd_error()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
-	if (fileinfo->status != FS_NEW) continue;
+	if (fileinfo->status != FS_ERROR) continue;
 
 	fprintf(stdout, "%s ERROR. %s\n", (char*)node->key, fileinfo->error);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no errors encountered during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1804,6 +1846,7 @@ bool cmd_error()
 bool cmd_copied()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1812,6 +1855,12 @@ bool cmd_copied()
 	if (fileinfo->status != FS_COPIED) continue;
 
 	fprintf(stdout, "%s copied.\n<-- %s\n", (char*)node->key, fileinfo->oldpath);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no copied files detected during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -1820,6 +1869,7 @@ bool cmd_copied()
 bool cmd_renamed()
 {
     struct rb_node* node;
+    unsigned int count = 0;
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -1828,6 +1878,12 @@ bool cmd_renamed()
 	if (fileinfo->status != FS_RENAMED) continue;
 
 	fprintf(stdout, "%s renamed.\n<-- %s\n", (char*)node->key, fileinfo->oldpath);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no renamed files detected during scan.\n",
+		g_progname);
     }
 
     return TRUE;
@@ -2166,11 +2222,13 @@ int main(int argc, char* argv[])
 	    }
 	    else if (cmd == -2)
 	    {
-		fprintf(stdout, "Ambigious command. See \"help\".\n");
+		fprintf(stdout, "%s: Ambigious command. See \"help\".\n",
+			g_progname);
 	    }
 	    else
 	    {
-		fprintf(stdout, "Unknown command. See \"help\".\n");
+		fprintf(stdout, "%s: Unknown command. See \"help\".\n",
+			g_progname);
 	    }
 	}
     }
