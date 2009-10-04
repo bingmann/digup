@@ -27,7 +27,7 @@
 #ifndef _SHA512_H
 #define _SHA512_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
 /* Structure to save state of computation between the single steps.  */

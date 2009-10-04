@@ -27,7 +27,7 @@
 #define _SHA1_H 1
 
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 enum { SHA1_DIGEST_SIZE = 20 };
 

@@ -27,7 +27,7 @@
 #define _MD5_H 1
 
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 enum { MD5_DIGEST_SIZE = 16 };
 

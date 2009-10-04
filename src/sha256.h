@@ -28,7 +28,7 @@
 #define _SHA256_H 1
 
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 enum { SHA224_DIGEST_SIZE = 224 / 8 };
 enum { SHA256_DIGEST_SIZE = 256 / 8 };
