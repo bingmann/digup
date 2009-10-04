@@ -23,7 +23,7 @@
 /* $Id$ */
 
 /* evil but simple way to include the main program to run tests on it */
-#define main __main
+#define main __mainx
 #include "digup.c"
 #undef main
 

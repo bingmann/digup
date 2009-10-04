@@ -200,7 +200,7 @@ static int asprintf(char **strp, const char *fmt, ...)
 static ssize_t getdelims(char **lineptr, size_t *n, const char *delims, FILE *stream)
 {
     void *tmp;
-    char *d;
+    const char *d;
     int c;
     size_t i;
 
@@ -269,6 +269,7 @@ char* readlink_dup(const char *filename)
     }
 
 #else
+    (void)filename;
     errno = EINVAL;
     return NULL;
 #endif
