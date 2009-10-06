@@ -50,16 +50,18 @@ am__installdirs = "$(DESTDIR)$(bindir)"
 binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS) $(noinst_PROGRAMS)
 am_digup_OBJECTS = digup.$(OBJEXT) rbtree.$(OBJEXT) digest.$(OBJEXT) \
-	md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) sha512.$(OBJEXT)
+	md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) sha512.$(OBJEXT) \
+	crc32.$(OBJEXT)
 digup_OBJECTS = $(am_digup_OBJECTS)
 digup_LDADD = $(LDADD)
 am_test_digest_OBJECTS = test_digest.$(OBJEXT) digest.$(OBJEXT) \
-	md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) sha512.$(OBJEXT)
+	md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) sha512.$(OBJEXT) \
+	crc32.$(OBJEXT)
 test_digest_OBJECTS = $(am_test_digest_OBJECTS)
 test_digest_LDADD = $(LDADD)
 am_test_digup_OBJECTS = test_digup.$(OBJEXT) rbtree.$(OBJEXT) \
 	digest.$(OBJEXT) md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) \
-	sha512.$(OBJEXT)
+	sha512.$(OBJEXT) crc32.$(OBJEXT)
 test_digup_OBJECTS = $(am_test_digup_OBJECTS)
 test_digup_LDADD = $(LDADD)
 am_test_rbtree_OBJECTS = test_rbtree.$(OBJEXT) rbtree.$(OBJEXT)
@@ -177,7 +179,8 @@ digup_SOURCES = digup.c \
 	rbtree.c rbtree.h \
 	digest.c digest.h \
 	md5.c md5.h sha1.c sha1.h \
-	sha256.c sha256.h sha512.c sha512.h
+	sha256.c sha256.h sha512.c sha512.h \
+	crc32.c crc32.h
 
 test_rbtree_SOURCES = test_rbtree.c \
 	rbtree.c rbtree.h
@@ -185,13 +188,15 @@ test_rbtree_SOURCES = test_rbtree.c \
 test_digest_SOURCES = test_digest.c \
 	digest.c digest.h \
 	md5.c md5.h sha1.c sha1.h \
-	sha256.c sha256.h sha512.c sha512.h
+	sha256.c sha256.h sha512.c sha512.h \
+	crc32.c crc32.h
 
 test_digup_SOURCES = test_digup.c \
 	rbtree.c rbtree.h \
 	digest.c digest.h \
 	md5.c md5.h sha1.c sha1.h \
-	sha256.c sha256.h sha512.c sha512.h
+	sha256.c sha256.h sha512.c sha512.h \
+	crc32.c crc32.h
 
 all: all-am
 
@@ -271,6 +276,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/crc32.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/digest.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/digup.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/md5.Po@am__quote@

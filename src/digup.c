@@ -276,6 +276,43 @@ char* readlink_dup(const char *filename)
 }
 
 /**
+ * fprintf() variant which also updates a CRC32 value.
+ */
+int fprintfcrc(uint32_t *crc, FILE* fp, const char *fmt, ...)
+{
+    va_list ap;
+    ssize_t len;
+
+    static char *out = NULL;
+    static ssize_t outlen = 0;
+
+    va_start(ap, fmt);
+
+    len = vsnprintf(NULL, 0, fmt, ap) + 1;
+
+    if (outlen < len)
+    {
+	while (outlen < len)
+	{
+	    outlen = 2 * outlen;
+	    if (outlen < 128) outlen = 128;
+	}
+
+	out = realloc(out, outlen);
+	if (out == NULL) return -1;
+    }
+
+    len = vsnprintf(out, len, fmt, ap);
+
+    *crc = crc32(*crc, (unsigned char*)out, len);
+    len = fwrite(out, len, 1, fp);
+    
+    va_end (ap);
+
+    return len;
+}
+
+/**
  * Transform each \n to a new line and each \\ back to a slash. no
  * other escapes characters are allowed.
  */
@@ -498,10 +535,10 @@ bool digest_file(const char* filepath, char** outdigest)
 /**
  * Parse one digest line and fill in tempinfo according or add a new
  * file to g_filelist. The return value is -1 for an unknown line, 0
- * for a correct digest or symlink line and +1 for a comment line
- * providing additional file info.
+ * for a correct digest or symlink line, +1 for a comment line
+ * providing additional file info and -2 for and eof flagged line.
  */
-int parse_digestline(const char* line, const unsigned int linenum, struct FileInfo* tempinfo)
+int parse_digestline(const char* line, const unsigned int linenum, struct FileInfo* tempinfo, uint32_t crc)
 {
     /*** parse line from digest file ***/
     size_t p = 0;
@@ -532,7 +569,7 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 	    p_word = p;
 	    while (isalpha(line[p]) || line[p] == '\\') ++p;
 
-	    if (!isspace(line[p]))
+	    if (!isspace(line[p]) && line[p] != 0)
 	    {
 		fprintf(stderr, "%s: \"%s\" line %d: unparseable digest comment line.\n",
 			g_progname, gopt_digestfile, linenum);
@@ -583,6 +620,13 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		/* read the complete following line (after the current
 		 * white space) as the symlink target */
 
+		if (!isspace(line[p]))
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unparseable digest comment line.\n",
+			    g_progname, gopt_digestfile, linenum);
+
+		    return -1;
+		}
 		++p;
 
 		p_arg = p;
@@ -595,6 +639,13 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		/* read the complete following line (after the current
 		 * white space) as the escaped symlink target */
 
+		if (!isspace(line[p]))
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unparseable digest comment line.\n",
+			    g_progname, gopt_digestfile, linenum);
+
+		    return -1;
+		}
 		++p;
 
 		p_arg = p;
@@ -618,6 +669,13 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		char* filename;
 		struct FileInfo* fileinfo;
 
+		if (!isspace(line[p]))
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unparseable digest comment line.\n",
+			    g_progname, gopt_digestfile, linenum);
+
+		    return -1;
+		}
 		++p;
 
 		p_arg = p;
@@ -653,6 +711,13 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		char* filename;
 		struct FileInfo* fileinfo;
 
+		if (!isspace(line[p]))
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unparseable digest comment line.\n",
+			    g_progname, gopt_digestfile, linenum);
+
+		    return -1;
+		}
 		++p;
 
 		p_arg = p;
@@ -687,6 +752,72 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 
 		/* return +1 here to clear tempinfo. */
 		return 1;
+	    }
+	    else if (strncmp(line+p_word, "crc", p - p_word) == 0)
+	    {
+		/* read hex crc32 value following the word */
+
+		char *crchex, *crcfilehex;
+
+		while (isspace(line[p])) ++p;
+
+		if (line[p] != '0' || line[++p] != 'x')
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unparseable crc line.\n",
+			    g_progname, gopt_digestfile, linenum);
+		    return 0;
+		}
+		++p;
+
+		p_arg = p;
+		while (isxdigit(line[p])) ++p;
+
+		if (p - p_arg != 8)
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unparseable sdfsdcrc line.\n",
+			    g_progname, gopt_digestfile, linenum);
+		    return 0;
+		}
+
+		asprintf(&crchex, "%08x", crc);
+		crcfilehex = strndup(line+p_arg, p - p_arg);
+		
+		if (!digest_equal(crchex, crcfilehex))
+		{
+		    free(crchex);
+		    free(crcfilehex);
+
+		    fprintf(stderr, "%s: \"%s\" line %d: crc32 value saved in file does not match!\n",
+			    g_progname, gopt_digestfile, linenum);
+
+		    if (gopt_batch)
+		    {
+			exit(-1); /* fail badly */
+		    }
+		    else
+		    {
+			char input[256];
+
+			fprintf(stderr, "This indicates an unintentional or intentional modification of the digest file.\n");
+			fprintf(stderr, "Continue despite change (y/n)? ");
+
+			fgets(input, sizeof(input), stdin);
+
+			if (input[0] != 'y')
+			{
+			    exit(-1);
+			}
+		    }
+		}
+		else
+		{
+		    free(crchex);
+		    free(crcfilehex);
+		}
+	    }
+	    else if (strncmp(line+p_word, "eof", p - p_word) == 0)
+	    {
+		return -2;
 	    }
 	    else
 	    {
@@ -894,6 +1025,9 @@ bool read_digestfile()
     ssize_t linelen;
     unsigned int linenum = 0;
 
+    int res = 0;
+    uint32_t crc = 0, nextcrc;
+
     if (gopt_digestfile == NULL)
     {
 	if (!select_digestfile())
@@ -943,11 +1077,21 @@ bool read_digestfile()
     {
 	++linenum;
 
+	if (res == -2) /* last line indicated eof */
+	{
+	    fprintf(stderr, "%s: \"%s\" line %d: superfluous line after eof.\n",
+		    g_progname, gopt_digestfile, linenum);
+	}
+
+	nextcrc = crc32(crc, (unsigned char*)line, linelen);
+
 	/* remove trailing newline */
 	if (linelen > 0 && line[linelen-1] == '\n')
 	    line[linelen-1] = 0;
 
-	if (parse_digestline(line, linenum, &tempinfo) != 0)
+	res = parse_digestline(line, linenum, &tempinfo, crc);
+
+	if (res != 0)
 	{
 	    /* Illegal or valid digest line found. Clear fileinfo. */
 
@@ -957,6 +1101,8 @@ bool read_digestfile()
 	    memset(&tempinfo, 0, sizeof(struct FileInfo));
 	    tempinfo.status = FS_UNSEEN;
 	}
+
+	crc = nextcrc;
     }
 
     if (line) free(line);
@@ -1893,6 +2039,7 @@ bool cmd_write()
 {
     FILE *sumfile = fopen(gopt_digestfile, "w");
 
+    uint32_t crc = 0;
     unsigned int digestcount = 0;
     struct rb_node* node;
 
@@ -1908,7 +2055,7 @@ bool cmd_write()
 	char datenow[32];
 	strftime(datenow, sizeof(datenow), "%Y-%m-%d %H:%M:%S %Z", localtime(&tnow));
 
-	fprintf(sumfile, "# %s last update: %s\n", g_progname, datenow);
+	fprintfcrc(&crc, sumfile, "# %s last update: %s\n", g_progname, datenow);
     }
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
@@ -1925,29 +2072,31 @@ bool cmd_write()
 	if (fileinfo->symlink)
 	{
 	    if (needescape_filename(&fileinfo->symlink)) /* may replace the symlink string */
-		fprintf(sumfile, "#: mtime %ld size %d target\\ %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
+		fprintfcrc(&crc, sumfile, "#: mtime %ld size %d target\\ %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
 	    else
-		fprintf(sumfile, "#: mtime %ld size %d target %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
+		fprintfcrc(&crc, sumfile, "#: mtime %ld size %d target %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
 
 	    if (needescape_filename(&filename)) /* may replace the filename string */
-		fprintf(sumfile, "#: symlink\\ %s\n", filename);
+		fprintfcrc(&crc, sumfile, "#: symlink\\ %s\n", filename);
 	    else
-		fprintf(sumfile, "#: symlink %s\n", filename);
+		fprintfcrc(&crc, sumfile, "#: symlink %s\n", filename);
 	}
 	else
 	{
-	    fprintf(sumfile, "#: mtime %ld size %d\n", fileinfo->mtime, fileinfo->size);
+	    fprintfcrc(&crc, sumfile, "#: mtime %ld size %d\n", fileinfo->mtime, fileinfo->size);
 
 	    if (needescape_filename(&filename)) /* may replace the filename string */
-		fprintf(sumfile, "\\");
+		fprintfcrc(&crc, sumfile, "\\");
 
-	    fprintf(sumfile, "%s  %s\n", fileinfo->digest, filename);
+	    fprintfcrc(&crc, sumfile, "%s  %s\n", fileinfo->digest, filename);
 	}
 
 	++digestcount;
 
 	free(filename);
     }
+
+    fprintf(sumfile, "#: crc 0x%08x eof\n", crc);
 
     fclose(sumfile);
 

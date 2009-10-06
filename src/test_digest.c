@@ -39,6 +39,10 @@ void check(const void* str, unsigned int slen, struct digest_ctx* digctx,
     digctx->finish(digctx, digest);
     
     dighex = digest_bin2hex_dup(digest, digctx->digest_size());
+    if ( !digest_equal(dighex, result) )
+    {
+	fprintf(stderr, "Digest result mismatches: %s != %s", dighex, result);
+    }
     assert( digest_equal(dighex, result) );
     free(dighex);
 
@@ -56,11 +60,13 @@ int main()
     struct digest_ctx digest_sha1;
     struct digest_ctx digest_sha256;
     struct digest_ctx digest_sha512;
+    struct digest_ctx digest_crc32;
 
     digest_init_md5(&digest_md5);
     digest_init_sha1(&digest_sha1);
     digest_init_sha256(&digest_sha256);
     digest_init_sha512(&digest_sha512);
+    digest_init_crc32(&digest_crc32);
 
     {
 	const char *str1 = "test string";
@@ -77,6 +83,9 @@ int main()
 	check(str1, strlen(str1), &digest_sha512,
 	      "10e6d647af44624442f388c2c14a787ff8b17e6165b83d767ec047768d8cbcb7"
 	      "1a1a3226e7cc7816bc79c0427d94a9da688c41a3992c7bf5e4d7cc3e0be5dbac");
+
+	check(str1, strlen(str1), &digest_crc32,
+	      "45154713");
     }
 
     {
@@ -100,6 +109,9 @@ int main()
 	check(str2, sizeof(str2), &digest_sha512,
 	      "76a59ba2dd234dfb4136e2e33a7e3b344d82f4885a17e3b297eab9a5ded81043"
 	      "292217b8126b1cfba29170dce2780259dc68ab4f382efe91aa4bb404912741f4");
+
+	check(str2, sizeof(str2), &digest_crc32,
+	      "a1e61db1");
     }
 
     return 0;

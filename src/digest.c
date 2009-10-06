@@ -58,9 +58,9 @@ __md5_read(struct digest_ctx *ctx, void *resbuf)
 }
 
 static void*
-__md5_process_buffer(const char *buffer, size_t len, void *resblock)
+__md5_process_buffer(const char *buffer, size_t len, void *resbuf)
 {
-    return md5_buffer(buffer, len, resblock);
+    return md5_buffer(buffer, len, resbuf);
 }
 
 void digest_init_md5(struct digest_ctx* ctx)
@@ -109,9 +109,9 @@ __sha1_read(struct digest_ctx *ctx, void *resbuf)
 }
 
 static void*
-__sha1_process_buffer(const char *buffer, size_t len, void *resblock)
+__sha1_process_buffer(const char *buffer, size_t len, void *resbuf)
 {
-    return sha1_buffer(buffer, len, resblock);
+    return sha1_buffer(buffer, len, resbuf);
 }
 
 void digest_init_sha1(struct digest_ctx* ctx)
@@ -160,9 +160,9 @@ __sha256_read(struct digest_ctx *ctx, void *resbuf)
 }
 
 static void*
-__sha256_process_buffer(const char *buffer, size_t len, void *resblock)
+__sha256_process_buffer(const char *buffer, size_t len, void *resbuf)
 {
-    return sha256_buffer(buffer, len, resblock);
+    return sha256_buffer(buffer, len, resbuf);
 }
 
 void digest_init_sha256(struct digest_ctx* ctx)
@@ -211,9 +211,9 @@ __sha512_read(struct digest_ctx *ctx, void *resbuf)
 }
 
 static void*
-__sha512_process_buffer(const char *buffer, size_t len, void *resblock)
+__sha512_process_buffer(const char *buffer, size_t len, void *resbuf)
 {
-    return sha512_buffer(buffer, len, resblock);
+    return sha512_buffer(buffer, len, resbuf);
 }
 
 void digest_init_sha512(struct digest_ctx* ctx)
@@ -224,6 +224,61 @@ void digest_init_sha512(struct digest_ctx* ctx)
     ctx->finish = __sha512_finish;
     ctx->read = __sha512_read;
     ctx->process_buffer = __sha512_process_buffer;
+
+    ctx->init(ctx);
+}
+
+/*** CRC32 ***/
+
+static size_t
+__crc32_digest_size()
+{
+    return CRC32_DIGEST_SIZE;
+}
+
+static void
+__crc32_init(struct digest_ctx *ctx)
+{
+    ctx->ctx.crc32 = 0;
+}
+
+static void
+__crc32_process(struct digest_ctx *ctx,
+	      const void *buffer, size_t len)
+{
+    ctx->ctx.crc32 = crc32(ctx->ctx.crc32, buffer, len);
+}
+
+static void*
+__crc32_finish(struct digest_ctx *ctx, void *resbuf)
+{
+    *(uint32_t*)resbuf = ctx->ctx.crc32;
+    return resbuf;
+}
+
+static void*
+__crc32_read(struct digest_ctx *ctx, void *resbuf)
+{
+    *(uint32_t*)resbuf = ctx->ctx.crc32;
+    return resbuf;
+}
+
+static void*
+__crc32_process_buffer(const char *buffer, size_t len, void *resbuf)
+{
+    uint32_t crc = crc32(0, (const unsigned char*)buffer, len);
+    *(uint32_t*)resbuf = crc;
+    return resbuf;
+}
+
+void digest_init_crc32(struct digest_ctx* ctx)
+{
+    ctx->digest_size = __crc32_digest_size;
+    ctx->init = __crc32_init;
+    ctx->process = __crc32_process;
+    ctx->finish = __crc32_finish;
+    ctx->read = __crc32_read;
+    ctx->process_buffer = __crc32_process_buffer;
 
     ctx->init(ctx);
 }

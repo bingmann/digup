@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Class-like structures to easily switch between message digests.           *
+ * Compute the CRC-32 of a data stream.                                      *
  *                                                                           *
  * Copyright (C) 2009 Timo Bingmann                                          *
  *                                                                           *
@@ -20,63 +20,19 @@
 
 /* $Id$ */
 
-#ifndef _DIGEST_H
-#define _DIGEST_H 1
+#ifndef _CRC32_H
+#define _CRC32_H 1
 
-#include "md5.h"
-#include "sha1.h"
-#include "sha256.h"
-#include "sha512.h"
-#include "crc32.h"
+#include <inttypes.h>
 
-/* class-like structure with function pointers and integrated digest
- * algorithm context. */
-struct digest_ctx
-{
-    union
-    {
-	struct md5_ctx		md5;
-	struct sha1_ctx		sha1;
-	struct sha256_ctx	sha256;
-	struct sha512_ctx	sha512;
-	uint32_t		crc32;
-    } ctx;
+enum { CRC32_DIGEST_SIZE = 4 };
 
-    size_t (*digest_size)();
+/**
+ * Calculate the updated CRC32 value after shifting in a buffer of len
+ * size. Start with crc = 0.
+ */
+extern uint32_t crc32(uint32_t crc, const unsigned char* buf, unsigned int len);
 
-    void (*init)(struct digest_ctx *ctx);
-
-    void (*process)(struct digest_ctx *ctx,
-		    const void *buffer, size_t len);
-
-    void* (*finish)(struct digest_ctx *ctx, void *resbuf);
-
-    void* (*read)(struct digest_ctx *ctx, void *resbuf);
-
-    void* (*process_buffer)(const char *buffer, size_t len, void *resbuf);
-};
-
-/* initialize the structure with function pointers for specific digest
- * type */
- 
-extern void digest_init_md5(struct digest_ctx* ctx);
-
-extern void digest_init_sha1(struct digest_ctx* ctx);
-
-extern void digest_init_sha256(struct digest_ctx* ctx);
-
-extern void digest_init_sha512(struct digest_ctx* ctx);
-
-extern void digest_init_crc32(struct digest_ctx* ctx);
-
-/* miscellaneous utilities */
-
-extern void digest_bin2hex(const void* bin, size_t len, char* out);
-
-extern char* digest_bin2hex_dup(const void* bin, size_t len);
-
-extern int digest_equal(const char* a, const char* b);
-
-#endif /* _DIGEST_H */
+#endif /* _CRC32_H */
 
 /*****************************************************************************/
