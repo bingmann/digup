@@ -65,7 +65,7 @@ struct FileInfo
     time_t		mtime;
     ssize_t		size;
     char*		error;
-    struct digest_result* digest;
+    digest_result*	digest;
     char*               symlink; /* target actually */
     char*               oldpath; /* for renamed or copied files. */
 };
@@ -138,7 +138,7 @@ void rbtree_fileinfo_free(void *a)
 /* functional for the g_filelist red-black tree */
 void rbtree_digest_result_free(void *a)
 {
-    free((struct digest_result*)a);
+    free((digest_result*)a);
 }
 
 /* functional for the g_filelist red-black tree */
@@ -156,8 +156,8 @@ int rbtree_string_cmp(const void *a, const void *b)
 /* functional for the g_filelist red-black tree */
 int rbtree_digest_result_cmp(const void *a, const void *b)
 {
-    return digest_cmp((const struct digest_result*)a,	
-		      (const struct digest_result*)b);
+    return digest_cmp((const digest_result*)a,	
+		      (const digest_result*)b);
 }
 
 /* functional for qsort() on a char* array */
@@ -425,8 +425,8 @@ bool needescape_filename(char** str)
  * outerror is filled with an error message string.
  */
 bool digest_file2(const char* filepath,
-		  struct digest_ctx* digctx,
-		  struct digest_result** outdigest,
+		  digest_ctx* digctx,
+		  digest_result** outdigest,
 		  char** outerror)
 {
     char buffer[1024*1024];
@@ -506,9 +506,9 @@ bool digest_file2(const char* filepath,
  * as a malloc()ed hex string in outdigest, or returns FALSE if there
  * was a read error.
  */
-bool digest_file(const char* filepath, struct digest_result** outdigest, char** outerror)
+bool digest_file(const char* filepath, digest_result** outdigest, char** outerror)
 {
-    struct digest_ctx digctx;
+    digest_ctx digctx;
 
     switch (gopt_digesttype)
     {
@@ -1181,7 +1181,7 @@ bool process_file(const char* filepath, const struct stat* st)
     if (fileiter != NULL)
     {
 	struct FileInfo* fileinfo = fileiter->value;
-	struct digest_result* filedigest = NULL;
+	digest_result* filedigest = NULL;
 
 	if (fileinfo->status != FS_UNSEEN)
 	{
@@ -1304,7 +1304,7 @@ bool process_file(const char* filepath, const struct stat* st)
 
 	    /* test if the oldfile still exists. */
 	    while (nodecopy != rb_end(g_filedigestmap) &&
-		   digest_equal((struct digest_result*)nodecopy->key, fileinfo->digest))
+		   digest_equal((digest_result*)nodecopy->key, fileinfo->digest))
 	    {
 		if (access((char*)nodecopy->value, F_OK) == 0)
 		{

@@ -33,19 +33,19 @@
  * variable sized structure to hold binary digest results of different
  * algorithms.
  */
-struct digest_result
+typedef struct digest_result
 {
     unsigned char	size;
     /* variable length of bytes follows:
     unsigned char	data[];
     */
-};
+} digest_result;
 
 /**
  * class-like structure with function pointers and integrated digest
  * algorithm context.
  */
-struct digest_ctx
+typedef struct digest_ctx
 {
     union
     {
@@ -68,7 +68,7 @@ struct digest_ctx
     struct digest_result* (*read)(struct digest_ctx *ctx);
 
     struct digest_result* (*process_buffer)(const char *buffer, size_t len);
-};
+} digest_ctx;
 
 /* initialize the structure with function pointers for specific digest
  * type */
