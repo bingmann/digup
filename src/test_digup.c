@@ -1,5 +1,5 @@
 /*****************************************************************************
- * digup - Tests within Digest File Update Program                           *
+ * test_digup - Tests within Digest File Update Program                      *
  *                                                                           *
  * Test cases: TODO                                                          *
  *                                                                           *

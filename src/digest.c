@@ -23,6 +23,17 @@
 #include "digest.h"
 
 #include <ctype.h>
+#include <string.h>
+
+/*** Helpers ***/
+
+static struct digest_result*
+malloc_result(unsigned int size)
+{
+    struct digest_result* resbuf = malloc(1 + size);
+    resbuf->size = size;
+    return resbuf;
+}
 
 /*** MD5 ***/
 
@@ -45,22 +56,28 @@ __md5_process(struct digest_ctx *ctx,
     md5_process_bytes(buffer, len, &ctx->ctx.md5);
 }
 
-static void*
-__md5_finish(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__md5_finish(struct digest_ctx *ctx)
 {
-    return md5_finish_ctx(&ctx->ctx.md5, resbuf);
+    struct digest_result* resbuf = malloc_result(MD5_DIGEST_SIZE);
+    md5_finish_ctx(&ctx->ctx.md5, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__md5_read(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__md5_read(struct digest_ctx *ctx)
 {
-    return md5_read_ctx(&ctx->ctx.md5, resbuf);
+    struct digest_result* resbuf = malloc_result(MD5_DIGEST_SIZE);
+    md5_read_ctx(&ctx->ctx.md5, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__md5_process_buffer(const char *buffer, size_t len, void *resbuf)
+static struct digest_result*
+__md5_process_buffer(const char *buffer, size_t len)
 {
-    return md5_buffer(buffer, len, resbuf);
+    struct digest_result* resbuf = malloc_result(MD5_DIGEST_SIZE);
+    md5_buffer(buffer, len, (char*)resbuf + 1);
+    return resbuf;
 }
 
 void digest_init_md5(struct digest_ctx* ctx)
@@ -96,22 +113,28 @@ __sha1_process(struct digest_ctx *ctx,
     sha1_process_bytes(buffer, len, &ctx->ctx.sha1);
 }
 
-static void*
-__sha1_finish(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__sha1_finish(struct digest_ctx *ctx)
 {
-    return sha1_finish_ctx(&ctx->ctx.sha1, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA1_DIGEST_SIZE);
+    sha1_finish_ctx(&ctx->ctx.sha1, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__sha1_read(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__sha1_read(struct digest_ctx *ctx)
 {
-    return sha1_read_ctx(&ctx->ctx.sha1, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA1_DIGEST_SIZE);
+    sha1_read_ctx(&ctx->ctx.sha1, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__sha1_process_buffer(const char *buffer, size_t len, void *resbuf)
+static struct digest_result*
+__sha1_process_buffer(const char *buffer, size_t len)
 {
-    return sha1_buffer(buffer, len, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA1_DIGEST_SIZE);
+    sha1_buffer(buffer, len, (char*)resbuf + 1);
+    return resbuf;
 }
 
 void digest_init_sha1(struct digest_ctx* ctx)
@@ -147,22 +170,28 @@ __sha256_process(struct digest_ctx *ctx,
     sha256_process_bytes(buffer, len, &ctx->ctx.sha256);
 }
 
-static void*
-__sha256_finish(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__sha256_finish(struct digest_ctx *ctx)
 {
-    return sha256_finish_ctx(&ctx->ctx.sha256, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA256_DIGEST_SIZE);
+    sha256_finish_ctx(&ctx->ctx.sha256, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__sha256_read(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__sha256_read(struct digest_ctx *ctx)
 {
-    return sha256_read_ctx(&ctx->ctx.sha256, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA256_DIGEST_SIZE);
+    sha256_read_ctx(&ctx->ctx.sha256, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__sha256_process_buffer(const char *buffer, size_t len, void *resbuf)
+static struct digest_result*
+__sha256_process_buffer(const char *buffer, size_t len)
 {
-    return sha256_buffer(buffer, len, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA256_DIGEST_SIZE);
+    sha256_buffer(buffer, len, (char*)resbuf + 1);
+    return resbuf;
 }
 
 void digest_init_sha256(struct digest_ctx* ctx)
@@ -198,22 +227,28 @@ __sha512_process(struct digest_ctx *ctx,
     sha512_process_bytes(buffer, len, &ctx->ctx.sha512);
 }
 
-static void*
-__sha512_finish(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__sha512_finish(struct digest_ctx *ctx)
 {
-    return sha512_finish_ctx(&ctx->ctx.sha512, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA512_DIGEST_SIZE);
+    sha512_finish_ctx(&ctx->ctx.sha512, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__sha512_read(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__sha512_read(struct digest_ctx *ctx)
 {
-    return sha512_read_ctx(&ctx->ctx.sha512, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA512_DIGEST_SIZE);
+    sha512_read_ctx(&ctx->ctx.sha512, (char*)resbuf + 1);
+    return resbuf;
 }
 
-static void*
-__sha512_process_buffer(const char *buffer, size_t len, void *resbuf)
+static struct digest_result*
+__sha512_process_buffer(const char *buffer, size_t len)
 {
-    return sha512_buffer(buffer, len, resbuf);
+    struct digest_result* resbuf = malloc_result(SHA512_DIGEST_SIZE);
+    sha512_buffer(buffer, len, (char*)resbuf + 1);
+    return resbuf;
 }
 
 void digest_init_sha512(struct digest_ctx* ctx)
@@ -249,25 +284,28 @@ __crc32_process(struct digest_ctx *ctx,
     ctx->ctx.crc32 = crc32(ctx->ctx.crc32, buffer, len);
 }
 
-static void*
-__crc32_finish(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__crc32_finish(struct digest_ctx *ctx)
 {
-    *(uint32_t*)resbuf = ctx->ctx.crc32;
+    struct digest_result* resbuf = malloc_result(CRC32_DIGEST_SIZE);
+    *(uint32_t*)((char*)resbuf+1) = ctx->ctx.crc32;
     return resbuf;
 }
 
-static void*
-__crc32_read(struct digest_ctx *ctx, void *resbuf)
+static struct digest_result*
+__crc32_read(struct digest_ctx *ctx)
 {
-    *(uint32_t*)resbuf = ctx->ctx.crc32;
+    struct digest_result* resbuf = malloc_result(CRC32_DIGEST_SIZE);
+    *(uint32_t*)((char*)resbuf+1) = ctx->ctx.crc32;
     return resbuf;
 }
 
-static void*
-__crc32_process_buffer(const char *buffer, size_t len, void *resbuf)
+static struct digest_result*
+__crc32_process_buffer(const char *buffer, size_t len)
 {
+    struct digest_result* resbuf = malloc_result(CRC32_DIGEST_SIZE);
     uint32_t crc = crc32(0, (const unsigned char*)buffer, len);
-    *(uint32_t*)resbuf = crc;
+    *(uint32_t*)((char*)resbuf+1) = crc;
     return resbuf;
 }
 
@@ -285,42 +323,104 @@ void digest_init_crc32(struct digest_ctx* ctx)
 
 /*** Utilities ***/
 
-void digest_bin2hex(const void* bin, size_t len, char* out)
+struct digest_result*
+digest_dup(const struct digest_result* res)
+{
+    struct digest_result* newres = malloc_result(res->size);
+    memcpy((char*)newres+1, (char*)res+1, res->size);
+    return newres;
+}
+
+char* digest_bin2hex(const struct digest_result* res, char* out)
 {
     unsigned int i;
-    unsigned char *cbin = (unsigned char*)bin;
+    unsigned char *cbin = (unsigned char*)res+1;
 
     static const char hex[16] = { '0', '1', '2', '3', '4', '5', '6', '7',
 				  '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
-    for (i = 0; i < len; ++i)
+    for (i = 0; i < res->size; ++i)
     {
 	out[2*i+0] = hex[ (cbin[i] >> 4) & 0x0F ];
 	out[2*i+1] = hex[ (cbin[i] >> 0) & 0x0F ];
     }
 
-    out[2*len] = 0;
-}
-
-char* digest_bin2hex_dup(const void* bin, size_t len)
-{
-    char* out = malloc(2 * len + 1);
-
-    digest_bin2hex(bin, len, out);
+    out[2*res->size] = 0;
 
     return out;
 }
 
-int digest_equal(const char* a, const char* b)
+char* digest_bin2hex_dup(const struct digest_result* res)
 {
-    size_t i;
+    char* out = malloc(2 * res->size + 1);
+    return digest_bin2hex(res, out);
+}
 
-    for (i = 0; a[i] && b[i]; ++i)
+struct digest_result* digest_hex2bin(const char* str, int len)
+{
+    static const char hexval[256] = {
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	 0,  1,  2,  3,  4,  5,  6,  7,  8,  9, -1, -1, -1, -1, -1, -1,
+	-1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, 10, 11, 12, 13, 14, 15, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+    };
+
+    struct digest_result* resbuf;
+    int i;
+
+    if (len < 0) len = strlen(str);
+
+    if (len % 2 != 0)
+	return NULL;
+
+    resbuf = malloc_result(len / 2);
+
+    for (i = 0; i < len; i += 2)
     {
-	if (tolower(a[i]) != tolower(b[i])) return 0;
-    }
+	if (hexval[(unsigned char)str[i]] < 0)
+	{
+	    free(resbuf);
+	    return NULL;
+	}
+	if (hexval[(unsigned char)str[i+1]] < 0)
+	{
+	    free(resbuf);
+	    return NULL;
+	}
 
-    return (a[i] == 0) && (b[i] == 0);
+	((unsigned char*)resbuf+1)[i/2] =
+	    hexval[(unsigned char)str[i]] * 16 +
+	    hexval[(unsigned char)str[i+1]];
+    }
+    
+    return resbuf;
+
+}
+
+int digest_equal(const struct digest_result* a, const struct digest_result* b)
+{
+    if (a->size != b->size) return 0;
+
+    return memcmp((unsigned char*)a+1, (unsigned char*)b+1, a->size) == 0;
+}
+
+int digest_cmp(const struct digest_result* a, const struct digest_result* b)
+{
+    if (a->size != b->size) return a->size - b->size;
+
+    return memcmp((unsigned char*)a+1, (unsigned char*)b+1, a->size);
 }
 
 /*****************************************************************************/

@@ -29,8 +29,22 @@
 #include "sha512.h"
 #include "crc32.h"
 
-/* class-like structure with function pointers and integrated digest
- * algorithm context. */
+/**
+ * variable sized structure to hold binary digest results of different
+ * algorithms.
+ */
+struct digest_result
+{
+    unsigned char	size;
+    /* variable length of bytes follows:
+    unsigned char	data[];
+    */
+};
+
+/**
+ * class-like structure with function pointers and integrated digest
+ * algorithm context.
+ */
 struct digest_ctx
 {
     union
@@ -49,11 +63,11 @@ struct digest_ctx
     void (*process)(struct digest_ctx *ctx,
 		    const void *buffer, size_t len);
 
-    void* (*finish)(struct digest_ctx *ctx, void *resbuf);
+    struct digest_result* (*finish)(struct digest_ctx *ctx);
 
-    void* (*read)(struct digest_ctx *ctx, void *resbuf);
+    struct digest_result* (*read)(struct digest_ctx *ctx);
 
-    void* (*process_buffer)(const char *buffer, size_t len, void *resbuf);
+    struct digest_result* (*process_buffer)(const char *buffer, size_t len);
 };
 
 /* initialize the structure with function pointers for specific digest
@@ -71,11 +85,17 @@ extern void digest_init_crc32(struct digest_ctx* ctx);
 
 /* miscellaneous utilities */
 
-extern void digest_bin2hex(const void* bin, size_t len, char* out);
+extern struct digest_result* digest_dup(const struct digest_result* res);
 
-extern char* digest_bin2hex_dup(const void* bin, size_t len);
+extern char* digest_bin2hex(const struct digest_result*, char* out);
 
-extern int digest_equal(const char* a, const char* b);
+extern char* digest_bin2hex_dup(const struct digest_result* res);
+
+extern struct digest_result* digest_hex2bin(const char* str, int len);
+
+extern int digest_equal(const struct digest_result* a, const struct digest_result* b);
+
+extern int digest_cmp(const struct digest_result* a, const struct digest_result* b);
 
 #endif /* _DIGEST_H */
 

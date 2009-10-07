@@ -29,29 +29,31 @@
 #include <string.h>
 
 void check(const void* str, unsigned int slen, struct digest_ctx* digctx,
-	   const char* result)
+	   const char* refhex)
 {
-    char digest[128];
-    char *dighex;
+    struct digest_result *digres, *digref;
 
     digctx->init(digctx);
     digctx->process(digctx, str, slen);
-    digctx->finish(digctx, digest);
+    digres = digctx->finish(digctx);
+
+    digref = digest_hex2bin(refhex, -1);
     
-    dighex = digest_bin2hex_dup(digest, digctx->digest_size());
-    if ( !digest_equal(dighex, result) )
+    if ( !digest_equal(digres, digref) )
     {
-	fprintf(stderr, "Digest result mismatches: %s != %s", dighex, result);
+	fprintf(stderr, "Digest result mismatches: %s != %s\n",
+		digest_bin2hex_dup(digres),
+		digest_bin2hex_dup(digref));
     }
-    assert( digest_equal(dighex, result) );
-    free(dighex);
+    assert( digest_equal(digres, digref) );
+    free(digres);
 
     /* redo test with process_buffer() function */
-    digctx->process_buffer(str, slen, digest);
+    digres = digctx->process_buffer(str, slen);
+    assert( digest_equal(digres, digref) );
 
-    dighex = digest_bin2hex_dup(digest, digctx->digest_size());
-    assert( digest_equal(dighex, result) );
-    free(dighex);
+    free(digres);
+    free(digref);
 }
 
 int main()

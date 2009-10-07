@@ -65,7 +65,7 @@ struct FileInfo
     time_t		mtime;
     ssize_t		size;
     char*		error;
-    char*		digest;
+    struct digest_result* digest;
     char*               symlink; /* target actually */
     char*               oldpath; /* for renamed or copied files. */
 };
@@ -90,7 +90,7 @@ enum DigestType gopt_digesttype = DT_NONE;
 
 struct rb_tree* g_filelist = NULL;
 
-/* red-black tree mapping digest string -> filename string */
+/* red-black tree mapping digest_result -> filename string */
 
 struct rb_tree* g_filedigestmap = NULL;
 
@@ -136,25 +136,34 @@ void rbtree_fileinfo_free(void *a)
 }
 
 /* functional for the g_filelist red-black tree */
+void rbtree_digest_result_free(void *a)
+{
+    free((struct digest_result*)a);
+}
+
+/* functional for the g_filelist red-black tree */
+void rbtree_null_free(void *a)
+{
+    (void)a;
+}
+
+/* functional for the g_filelist red-black tree */
 int rbtree_string_cmp(const void *a, const void *b)
 {
     return strcmp((const char*)a, (const char*)b);
+}
+
+/* functional for the g_filelist red-black tree */
+int rbtree_digest_result_cmp(const void *a, const void *b)
+{
+    return digest_cmp((const struct digest_result*)a,	
+		      (const struct digest_result*)b);
 }
 
 /* functional for qsort() on a char* array */
 static int strcmpptr(const void *p1, const void *p2)
 {
     return strcmp(*(char**)p1, *(char**)p2);
-}
-
-/* strdup() but transform the string to lower case. */
-char* strduplower(const char* str)
-{
-    size_t i;
-    char* out = strdup(str);
-    for (i = 0; out[i]; ++i)
-	out[i] = tolower(out[i]);
-    return out;
 }
 
 /* simple strndup() replacement if not in standard library. */
@@ -413,11 +422,13 @@ bool needescape_filename(char** str)
 /**
  * Called from digest_file() with a struct digest_ctx. If there is an
  * error while calculating the digest, the function returns FALSE and
- * outdigest is misused as an error message string.
+ * outerror is filled with an error message string.
  */
-bool digest_file2(const char* filepath, struct digest_ctx* digctx, char** outdigest)
+bool digest_file2(const char* filepath,
+		  struct digest_ctx* digctx,
+		  struct digest_result** outdigest,
+		  char** outerror)
 {
-    unsigned char digestbin[128];
     char buffer[1024*1024];
     ssize_t rb, totalread = 0;
 
@@ -447,7 +458,7 @@ bool digest_file2(const char* filepath, struct digest_ctx* digctx, char** outdig
 	    fprintf(stderr, "%s: could not open file \"%s\": %s.\n",
 		    g_progname, filepath, strerror(errno));
 	}
-	asprintf(outdigest, "Could not open file: %s.", strerror(errno));
+	asprintf(outerror, "Could not open file: %s.", strerror(errno));
 	return FALSE;
     }
 
@@ -477,17 +488,15 @@ bool digest_file2(const char* filepath, struct digest_ctx* digctx, char** outdig
 	    fprintf(stderr, "%s: could not read file \"%s\": %s.\n",
 		    g_progname, filepath, strerror(errno));
 	}
-	asprintf(outdigest, "Could not read file: %s.", strerror(errno));
+	asprintf(outerror, "Could not read file: %s.", strerror(errno));
 	close(fd);
 	return FALSE;
     }
 
     close(fd);
 
-    digctx->finish(digctx, digestbin);
-
     assert(!*outdigest);
-    *outdigest = digest_bin2hex_dup(digestbin, digctx->digest_size());
+    *outdigest = digctx->finish(digctx);
 
     return TRUE;
 }
@@ -497,7 +506,7 @@ bool digest_file2(const char* filepath, struct digest_ctx* digctx, char** outdig
  * as a malloc()ed hex string in outdigest, or returns FALSE if there
  * was a read error.
  */
-bool digest_file(const char* filepath, char** outdigest)
+bool digest_file(const char* filepath, struct digest_result** outdigest, char** outerror)
 {
     struct digest_ctx digctx;
 
@@ -521,11 +530,11 @@ bool digest_file(const char* filepath, char** outdigest)
 
     default:
 	assert(0);
-	asprintf(outdigest, "Invalid digest algorithm.");
+	asprintf(outerror, "Invalid digest algorithm.");
 	return FALSE;
     }
 
-    return digest_file2(filepath, &digctx, outdigest);
+    return digest_file2(filepath, &digctx, outdigest, outerror);
 }
 
 /************************************
@@ -757,7 +766,7 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 	    {
 		/* read hex crc32 value following the word */
 
-		char *crchex, *crcfilehex;
+		char *crchex;
 
 		while (isspace(line[p])) ++p;
 
@@ -780,12 +789,10 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		}
 
 		asprintf(&crchex, "%08x", crc);
-		crcfilehex = strndup(line+p_arg, p - p_arg);
 		
-		if (!digest_equal(crchex, crcfilehex))
+		if (strncmp(crchex, line+p_arg, p - p_arg) != 0)
 		{
 		    free(crchex);
-		    free(crcfilehex);
 
 		    fprintf(stderr, "%s: \"%s\" line %d: crc32 value saved in file does not match!\n",
 			    g_progname, gopt_digestfile, linenum);
@@ -812,7 +819,6 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		else
 		{
 		    free(crchex);
-		    free(crcfilehex);
 		}
 	    }
 	    else if (strncmp(line+p_word, "eof", p - p_word) == 0)
@@ -864,26 +870,36 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 
 	if (p_hex1 + 2 * MD5_DIGEST_SIZE == p)
 	{
-	    fileinfo->digest = strndup( line+p_hex1, p - p_hex1 );
+	    fileinfo->digest = digest_hex2bin( line+p_hex1, p - p_hex1 );
 	    this_digesttype = DT_MD5;
 	}
 	else if (p_hex1 + 2 * SHA1_DIGEST_SIZE == p)
 	{
-	    fileinfo->digest = strndup( line+p_hex1, p - p_hex1 );
+	    fileinfo->digest = digest_hex2bin( line+p_hex1, p - p_hex1 );
 	    this_digesttype = DT_SHA1;
 	}
 	else if (p_hex1 + 2 * SHA256_DIGEST_SIZE == p)
 	{
-	    fileinfo->digest = strndup( line+p_hex1, p - p_hex1 );
+	    fileinfo->digest = digest_hex2bin( line+p_hex1, p - p_hex1 );
 	    this_digesttype = DT_SHA256;
 	}
 	else if (p_hex1 + 2 * SHA512_DIGEST_SIZE == p)
 	{
-	    fileinfo->digest = strndup( line+p_hex1, p - p_hex1 );
+	    fileinfo->digest = digest_hex2bin( line+p_hex1, p - p_hex1 );
 	    this_digesttype = DT_SHA512;
 	}
 	else
 	{
+	    fprintf(stderr, "%s: \"%s\" line %d: no proper hex digest detected on line.\n",
+		    g_progname, gopt_digestfile, linenum);
+
+	    free(fileinfo);
+	    return -1;
+	}
+
+	if (!fileinfo->digest)
+	{
+	    assert(fileinfo->digest);
 	    fprintf(stderr, "%s: \"%s\" line %d: no proper hex digest detected on line.\n",
 		    g_progname, gopt_digestfile, linenum);
 
@@ -1130,7 +1146,7 @@ bool read_digestfile()
 	    const struct FileInfo* fileinfo = node->value;
 	    if (!fileinfo->digest) continue;
 
-	    rb_insert(g_filedigestmap, strduplower(fileinfo->digest), strdup((char*)node->key));
+	    rb_insert(g_filedigestmap, digest_dup(fileinfo->digest), node->key);
 	}
     }
 
@@ -1165,7 +1181,7 @@ bool process_file(const char* filepath, const struct stat* st)
     if (fileiter != NULL)
     {
 	struct FileInfo* fileinfo = fileiter->value;
-	char* filedigest = NULL;
+	struct digest_result* filedigest = NULL;
 
 	if (fileinfo->status != FS_UNSEEN)
 	{
@@ -1208,12 +1224,11 @@ bool process_file(const char* filepath, const struct stat* st)
 
 	/* calculate file digest */
 
-	if (!digest_file(filepath, &filedigest))
+	if (!digest_file(filepath, &filedigest, &fileinfo->error))
 	{
 	    fileinfo->status = FS_ERROR;
 	    fileinfo->mtime = st->st_mtime;
 	    fileinfo->size = st->st_size;
-	    fileinfo->error = filedigest;
 
 	    ++g_filelist_error;
 	    return FALSE;
@@ -1269,12 +1284,9 @@ bool process_file(const char* filepath, const struct stat* st)
 	fileinfo->mtime = st->st_mtime;
 	fileinfo->size = st->st_size;
 
-	if (!digest_file(filepath, &fileinfo->digest))
+	if (!digest_file(filepath, &fileinfo->digest, &fileinfo->error))
 	{
 	    fileinfo->status = FS_ERROR;
-
-	    fileinfo->error = fileinfo->digest;
-	    fileinfo->digest = NULL;
 
 	    rb_insert(g_filelist, strdup(filepath), fileinfo);
 
@@ -1292,7 +1304,7 @@ bool process_file(const char* filepath, const struct stat* st)
 
 	    /* test if the oldfile still exists. */
 	    while (nodecopy != rb_end(g_filedigestmap) &&
-		   strcmp((char*)nodecopy->key, fileinfo->digest) == 0)
+		   digest_equal((struct digest_result*)nodecopy->key, fileinfo->digest))
 	    {
 		if (access((char*)nodecopy->value, F_OK) == 0)
 		{
@@ -2040,6 +2052,7 @@ bool cmd_write()
     FILE *sumfile = fopen(gopt_digestfile, "w");
 
     uint32_t crc = 0;
+    char digeststr[128];
     unsigned int digestcount = 0;
     struct rb_node* node;
 
@@ -2088,7 +2101,7 @@ bool cmd_write()
 	    if (needescape_filename(&filename)) /* may replace the filename string */
 		fprintfcrc(&crc, sumfile, "\\");
 
-	    fprintfcrc(&crc, sumfile, "%s  %s\n", fileinfo->digest, filename);
+	    fprintfcrc(&crc, sumfile, "%s  %s\n", digest_bin2hex(fileinfo->digest, digeststr), filename);
 	}
 
 	++digestcount;
@@ -2312,7 +2325,7 @@ int main(int argc, char* argv[])
 
     g_filelist = rb_create(rbtree_string_cmp, rbtree_string_free, rbtree_fileinfo_free, NULL, NULL);
 
-    g_filedigestmap = rb_create(rbtree_string_cmp, rbtree_string_free, rbtree_string_free, NULL, NULL);
+    g_filedigestmap = rb_create(rbtree_digest_result_cmp, rbtree_digest_result_free, rbtree_null_free, NULL, NULL);
 
     /* read digest file if it exists */
 
