@@ -56,7 +56,7 @@ void check(const void* str, unsigned int slen, struct digest_ctx* digctx,
     free(digref);
 }
 
-int main()
+int main(void)
 {
     struct digest_ctx digest_md5;
     struct digest_ctx digest_sha1;

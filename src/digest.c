@@ -38,7 +38,7 @@ malloc_result(unsigned int size)
 /*** MD5 ***/
 
 static size_t
-__md5_digest_size()
+__md5_digest_size(void)
 {
     return MD5_DIGEST_SIZE;
 }
@@ -95,7 +95,7 @@ void digest_init_md5(struct digest_ctx* ctx)
 /*** SHA1 ***/
 
 static size_t
-__sha1_digest_size()
+__sha1_digest_size(void)
 {
     return SHA1_DIGEST_SIZE;
 }
@@ -152,7 +152,7 @@ void digest_init_sha1(struct digest_ctx* ctx)
 /*** SHA256 ***/
 
 static size_t
-__sha256_digest_size()
+__sha256_digest_size(void)
 {
     return SHA256_DIGEST_SIZE;
 }
@@ -209,7 +209,7 @@ void digest_init_sha256(struct digest_ctx* ctx)
 /*** SHA512 ***/
 
 static size_t
-__sha512_digest_size()
+__sha512_digest_size(void)
 {
     return SHA512_DIGEST_SIZE;
 }
@@ -266,7 +266,7 @@ void digest_init_sha512(struct digest_ctx* ctx)
 /*** CRC32 ***/
 
 static size_t
-__crc32_digest_size()
+__crc32_digest_size(void)
 {
     return CRC32_DIGEST_SIZE;
 }

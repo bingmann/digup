@@ -963,7 +963,7 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
     }
 }
 
-bool select_digestfile()
+bool select_digestfile(void)
 {
     /*
       Check for existing standard digest file names. However, if
@@ -1031,7 +1031,7 @@ bool select_digestfile()
     return TRUE;
 }
 
-bool read_digestfile()
+bool read_digestfile(void)
 {
     FILE* sumfile;
     struct FileInfo tempinfo;
@@ -1815,7 +1815,7 @@ bool start_scan(const char* path)
  * Functions for interactive scan result review  *
  *************************************************/
 
-void print_summary()
+void print_summary(void)
 {
     unsigned int deleted = rb_size(g_filelist) - (g_filelist_new + g_filelist_seen + g_filelist_touched + g_filelist_changed + g_filelist_error + g_filelist_renamed + g_filelist_copied + g_filelist_oldpath);
 
@@ -1848,7 +1848,7 @@ void print_summary()
     fprintf(stdout, "      Total: %d\n", rb_size(g_filelist));
 }
 
-bool cmd_help()
+bool cmd_help(void)
 {
     fprintf(stdout,
 	    "Commands: (can be abbreviated)\n"
@@ -1863,7 +1863,7 @@ bool cmd_help()
     return TRUE;
 }
 
-bool cmd_new()
+bool cmd_new(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -1886,7 +1886,7 @@ bool cmd_new()
     return TRUE;
 }
 
-bool cmd_untouched()
+bool cmd_untouched(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -1909,7 +1909,7 @@ bool cmd_untouched()
     return TRUE;
 }
 
-bool cmd_touched()
+bool cmd_touched(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -1932,7 +1932,7 @@ bool cmd_touched()
     return TRUE;
 }
 
-bool cmd_changed()
+bool cmd_changed(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -1955,7 +1955,7 @@ bool cmd_changed()
     return TRUE;
 }
 
-bool cmd_deleted()
+bool cmd_deleted(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -1978,7 +1978,7 @@ bool cmd_deleted()
     return TRUE;
 }
 
-bool cmd_error()
+bool cmd_error(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -2001,7 +2001,7 @@ bool cmd_error()
     return TRUE;
 }
 
-bool cmd_copied()
+bool cmd_copied(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -2024,7 +2024,7 @@ bool cmd_copied()
     return TRUE;
 }
 
-bool cmd_renamed()
+bool cmd_renamed(void)
 {
     struct rb_node* node;
     unsigned int count = 0;
@@ -2047,7 +2047,7 @@ bool cmd_renamed()
     return TRUE;
 }
 
-bool cmd_write()
+bool cmd_write(void)
 {
     FILE *sumfile = fopen(gopt_digestfile, "w");
 
@@ -2119,7 +2119,7 @@ bool cmd_write()
     return FALSE;
 }
 
-bool cmd_quit()
+bool cmd_quit(void)
 {
     return FALSE;
 }
@@ -2127,7 +2127,7 @@ bool cmd_quit()
 struct CommandEntry
 {
     const char* name;
-    bool	(*func)();
+    bool	(*func)(void);
 };
 
 static struct CommandEntry cmdlist[] =
@@ -2152,30 +2152,39 @@ static struct CommandEntry cmdlist[] =
  * main() *
  **********/
 
-void print_usage()
+void print_usage(void)
 {
+/*          xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ */
+
     printf("Usage: %s [OPTIONS...]\n"
 	   "\n"
 	   "Read, verify and update MD5 or SHA digest files.\n"
 	   "\n", g_progname);
 
-    printf("Looks for a digest file (defaults to \"md5sum.txt\", \"sha1sum.txt\", \"sha256sum.txt\" or \"sha512sum.txt\")\n"
-	   "in the current directory. If one exists it is parsed and loaded. Then all files in the directory are recursively\n"
-	   "checked. Their status (new, unmodified, touched and matching, changed) is determined from modification time and\n"
-	   "the stored file digest. After the scan a manual review of the status can be done and a new digest file written.\n"
+    printf("Looks for a digest file (defaults to \"md5sum.txt\", \"sha1sum.txt\",\n"
+	   "\"sha256sum.txt\" or \"sha512sum.txt\") in the current directory. If one exists\n"
+	   "it is parsed and loaded. Then all files in the directory are recursively\n"
+	   "checked. Their status (new, unmodified, touched and matching, changed) is\n"
+	   "determined from modification time and the stored file digest. After the scan\n"
+	   "a manual review of the status can be done and a new digest file written.\n"
 	   "\n");
 
-    printf("Options:\n"
-	   "  -b, --batch           enable non-interactive batch processing: prints results and exits.\n"
-	   "  -c, --check           perform full digest check ignoring file modification times.\n"
-	   "  -d, --directory=PATH  change into this directory before performing any operations.\n"
-	   "  -f, --file=FILE       parse FILE for existing digests and write updates to it.\n"
-	   "  -l, --links           follow symbolic links instead of saving their destination.\n"
-	   "  -m, --modified        print only new, modified, errors, moved, renamed or deleted files.\n"
-	   "  -q, --quiet           reduce status printing while scanning.\n"
-	   "  -t, --type=TYPE       select digest type for new files: TYPE = md5, sha1, sha256 or sha512.\n"
-	   "  -v, --verbose         increase status printing during scanning.\n"
-	   "\n");
+    printf("Options:\n");
+    printf("  -b, --batch           enable non-interactive batch processing mode.\n");
+    printf("  -c, --check           perform full digest check ignoring modification times.\n");
+    printf("  -d, --directory=PATH  change into this directory before any operations.\n");
+    printf("  -f, --file=FILE       check FILE for existing digests and writing updates.\n");
+    printf("  -l, --links           follow symlinks instead of saving their destination.\n");
+    printf("  -m, --modified        suppressing printing of unchanged files.\n");
+    printf("  -q, --quiet           reduce status printing while scanning.\n");
+    printf("  -t, --type=TYPE       select digest type for newly created digest files.\n");
+    printf("                          TYPE = md5, sha1, sha256 or sha512.\n");
+    printf("  -v, --verbose         increase status printing during scanning.\n");
+    printf("\n");
+
+    printf("See \"man 1 digup\" for further explanations.\n");
+    printf("\n");
 }
 
 int main(int argc, char* argv[])

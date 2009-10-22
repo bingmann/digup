@@ -44,7 +44,7 @@ void string_print(const void *a)
     printf("%s", (char*)a);
 }
 
-void test_strings()
+void test_strings(void)
 {
     int i;
     char str[512];
@@ -115,7 +115,7 @@ void integer_print(const void *a)
     printf("%d", (int)a);
 }
 
-void test_integers()
+void test_integers(void)
 {
     int i, val;
     struct rb_node *node;
@@ -229,7 +229,7 @@ void test_integers_multi(int factor)
     rb_destroy(tree);
 }
 
-int main()
+int main(void)
 {
     int i;
 

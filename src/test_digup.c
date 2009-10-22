@@ -27,7 +27,7 @@
 #include "digup.c"
 #undef main
 
-void test_filename_escaping()
+void test_filename_escaping(void)
 {
     char* str1 = strdup("test-file-name");
     char* str2 = strdup("test-file\\nname\\\\");
@@ -65,7 +65,7 @@ void test_filename_escaping()
     free(str4);
 }
 
-int main()
+int main(void)
 {
     test_filename_escaping();
 

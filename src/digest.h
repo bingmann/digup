@@ -56,7 +56,7 @@ typedef struct digest_ctx
 	uint32_t		crc32;
     } ctx;
 
-    size_t (*digest_size)();
+    size_t (*digest_size)(void);
 
     void (*init)(struct digest_ctx *ctx);
 
