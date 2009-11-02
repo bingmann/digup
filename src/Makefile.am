@@ -11,6 +11,8 @@ digup_SOURCES = digup.c \
 	sha256.c sha256.h sha512.c sha512.h \
 	crc32.c crc32.h
 
+man1_MANS = digup.1
+
 noinst_PROGRAMS = test_rbtree test_digest test_digup
 
 TESTS = test_rbtree test_digest test_digup
