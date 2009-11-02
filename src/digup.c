@@ -433,16 +433,22 @@ bool digest_file2(const char* filepath,
     char buffer[1024*1024];
     ssize_t rb, totalread = 0;
 
+#if ON_WIN32
+    int openflags = O_RDONLY | O_BINARY;
+#else
+    int openflags = O_RDONLY;
+#endif
+
 #ifdef O_NOATIME
-    int fd = open(filepath, O_RDONLY | O_NOATIME);
+    int fd = open(filepath, openflags | O_NOATIME);
 
     if (fd < 0 && errno == EPERM)
     {
 	/* try without O_NOATIME for files not owned by the user */
-	fd = open(filepath, O_RDONLY);
+	fd = open(filepath, openflags);
     }
 #else
-    int fd = open(filepath, O_RDONLY);
+    int fd = open(filepath, openflags);
 #endif
 
     if (fd < 0)
@@ -1062,7 +1068,7 @@ bool read_digestfile(void)
     }
 
 
-    sumfile = fopen(gopt_digestfile, "r");
+    sumfile = fopen(gopt_digestfile, "rb");
     if (sumfile == NULL)
     {
 	if (errno == ENOENT)
@@ -2068,7 +2074,7 @@ bool cmd_renamed(void)
 
 bool cmd_write(void)
 {
-    FILE *sumfile = fopen(gopt_digestfile, "w");
+    FILE *sumfile = fopen(gopt_digestfile, "wb");
 
     uint32_t crc = 0;
     char digeststr[128];
