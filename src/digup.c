@@ -83,6 +83,7 @@ bool gopt_batch = FALSE;
 bool gopt_fullcheck = FALSE;
 bool gopt_followsymlinks = FALSE;
 bool gopt_onlymodified = FALSE;
+bool gopt_update = FALSE;
 char* gopt_digestfile = NULL;
 enum DigestType gopt_digesttype = DT_NONE;
 
@@ -1815,10 +1816,27 @@ bool start_scan(const char* path)
  * Functions for interactive scan result review  *
  *************************************************/
 
+struct CommandEntry
+{
+    const char* name;
+    bool	(*func)(void);
+    const char*	help;
+};
+
+static struct CommandEntry cmdlist[15];
+
+bool filelist_clean(void)
+{
+    return ( rb_size(g_filelist) == g_filelist_seen + g_filelist_touched );
+}
+
+unsigned int filelist_deleted(void)
+{
+    return rb_size(g_filelist) - (g_filelist_new + g_filelist_seen + g_filelist_touched + g_filelist_changed + g_filelist_error + g_filelist_renamed + g_filelist_copied + g_filelist_oldpath);
+}
+
 void print_summary(void)
 {
-    unsigned int deleted = rb_size(g_filelist) - (g_filelist_new + g_filelist_seen + g_filelist_touched + g_filelist_changed + g_filelist_error + g_filelist_renamed + g_filelist_copied + g_filelist_oldpath);
-
     fprintf(stdout, "File scan summary:\n");
 
     if (g_filelist_new)
@@ -1842,23 +1860,24 @@ void print_summary(void)
     if (g_filelist_copied)
 	fprintf(stdout, "     Copied: %d\n", g_filelist_copied);
 
-    if (deleted)
-	fprintf(stdout, "    Deleted: %d\n", deleted);
+    if (filelist_deleted())
+	fprintf(stdout, "    Deleted: %d\n", filelist_deleted());
 
     fprintf(stdout, "      Total: %d\n", rb_size(g_filelist));
 }
 
 bool cmd_help(void)
 {
-    fprintf(stdout,
-	    "Commands: (can be abbreviated)\n"
-	    "  help       See this help text.\n"
-	    "  new        Print all newly seen files.\n"
-	    "  untouched  Print all untouched files.\n"
-	    "  touched    Print all touched but unchanged files.\n"
-	    "  changed    Print all changed files.\n"
-	    "  deleted    Print all deleted files.\n"
-	    " TODO many missing.\n");
+    int i;
+
+    fprintf(stdout, "Commands: (can be abbreviated)\n");
+
+    for (i = 0; cmdlist[i].name; ++i)
+    {
+	if (!cmdlist[i].help) continue;
+
+	fprintf(stdout, "  %-10s %s\n", cmdlist[i].name, cmdlist[i].help);
+    }
 
     return TRUE;
 }
@@ -2124,28 +2143,23 @@ bool cmd_quit(void)
     return FALSE;
 }
 
-struct CommandEntry
+static struct CommandEntry cmdlist[15] =
 {
-    const char* name;
-    bool	(*func)(void);
-};
-
-static struct CommandEntry cmdlist[] =
-{
-    { "help",		&cmd_help },
-    { "new",		&cmd_new },
-    { "untouched",	&cmd_untouched },
-    { "touched",	&cmd_touched },
-    { "changed",	&cmd_changed },
-    { "modified",	&cmd_changed },
-    { "deleted",	&cmd_deleted },
-    { "copied",		&cmd_copied },
-    { "renamed",	&cmd_renamed },
-    { "error",		&cmd_error },
-    { "write",		&cmd_write },
-    { "save",		&cmd_write },
-    { "quit",		&cmd_quit },
-    { "exit",		&cmd_quit }
+    { "help",		&cmd_help,	"See this help text." },
+    { "new",		&cmd_new,	"Print newly seen files not in digest file." },
+    { "untouched",	&cmd_untouched,	"Print all untouched files." },
+    { "touched",	&cmd_touched,	"Print all files with changed modification time." },
+    { "changed",	&cmd_changed,	"Print files with changed contents." },
+    { "modified",	&cmd_changed,	NULL },
+    { "copied",		&cmd_copied,	"Print files copied from a different path." },
+    { "renamed",	&cmd_renamed,	"Print files renamed from a different path." },
+    { "deleted",	&cmd_deleted,	"Print deleted files." },
+    { "error",		&cmd_error,	"Print files with read errors." },
+    { "save",		&cmd_write,	"Write updates to digest file and exit program." },
+    { "write",		&cmd_write,	NULL },
+    { "exit",		&cmd_quit,	"Exit program without saving updates." },
+    { "quit",		&cmd_quit,	NULL },
+    { NULL,             NULL,		NULL },
 };
 
 /**********
@@ -2180,6 +2194,7 @@ void print_usage(void)
     printf("  -q, --quiet           reduce status printing while scanning.\n");
     printf("  -t, --type=TYPE       select digest type for newly created digest files.\n");
     printf("                          TYPE = md5, sha1, sha256 or sha512.\n");
+    printf("  -u, --update          automatically update digest file in batch mode.\n");
     printf("  -v, --verbose         increase status printing during scanning.\n");
     printf("\n");
 
@@ -2189,6 +2204,8 @@ void print_usage(void)
 
 int main(int argc, char* argv[])
 {
+    int retcode = 0;
+
     g_progname = argv[0];
 
     while (1)
@@ -2204,6 +2221,7 @@ int main(int argc, char* argv[])
 		{ "modified",  	no_argument,       0, 'm' },
 		{ "quiet",      no_argument,       0, 'q' },
 		{ "type",   	required_argument, 0, 't' },
+		{ "update",     no_argument,       0, 'u' },
 		{ "verbose",    no_argument,       0, 'v' },
 		{ NULL,	    	0,                 0, 0 }
 	    };
@@ -2211,7 +2229,7 @@ int main(int argc, char* argv[])
 	/* getgopt_long stores the option index here. */
 	int option_index = 0;
 
-	int c = getopt_long(argc, argv, "bcd:f:hlmqt:v",
+	int c = getopt_long(argc, argv, "bcd:f:hlmqt:uv",
 			    long_options, &option_index);
 
      	if (c == -1) break;
@@ -2253,8 +2271,6 @@ int main(int argc, char* argv[])
 
 	case 'm':
 	    gopt_onlymodified = TRUE;
-	    if (gopt_verbose >= 2)
-		gopt_verbose = 1;
 	    break;
 
 	case 'q':
@@ -2305,6 +2321,10 @@ int main(int argc, char* argv[])
 	    }
 	    break;
 
+	case 'u':
+	    gopt_update = TRUE;
+	    break;
+
 	case 'v':
 	    ++gopt_verbose;
 	    break;
@@ -2330,6 +2350,17 @@ int main(int argc, char* argv[])
 	return -1;
     }
 
+    /* reduce level for only-modified printing */
+
+    if (gopt_onlymodified && gopt_verbose >= 2)
+	gopt_verbose = 1;
+
+    if (gopt_update && !gopt_batch)
+    {
+	fprintf(stderr, "%s: automaticcaly updating the digest file requires --batch mode.\n", g_progname);
+	return -1;
+    }
+
     /* initialize red-black trees */
 
     g_filelist = rb_create(rbtree_string_cmp, rbtree_string_free, rbtree_fileinfo_free, NULL, NULL);
@@ -2345,26 +2376,37 @@ int main(int argc, char* argv[])
 
     start_scan(".");
 
-    cmd_deleted(); /* always print deleted files, otherwise they may be silently ignored. */
-
-    fprintf(stderr, "Scan finished. ");
+    if (filelist_deleted() != 0 || !gopt_onlymodified)
+    {
+	/* always print deleted files, otherwise they may be silently ignored. */
+	cmd_deleted();
+    }
 
     /* batch processing */
 
     if (gopt_batch)
     {
-	print_summary();
+	if (!filelist_clean() || !gopt_onlymodified)
+	    print_summary();
 
-	if (rb_size(g_filelist) == g_filelist_seen + g_filelist_touched)
-	    return 0;
+	if (gopt_update)
+	{
+	    cmd_write();
+	}
+
+	if (filelist_clean())
+	    retcode = 0;
 	else
-	    return 1; /* changes, renames, moves, deletes or read errors detected. */
+	    retcode = 1; /* changes, renames, moves, deletes or read errors detected. */
     }
-
+    /* interactive processing */
+    else
     {
-	/* print scan summary */
-
 	char input[256];
+
+	fprintf(stdout, "Scan finished. ");
+
+	/* print scan summary */
 
 	while ( print_summary(),
 		fprintf(stdout, "Command (see help)? "),
@@ -2377,7 +2419,7 @@ int main(int argc, char* argv[])
 	    if (strlen(input) > 0 && input[strlen(input)-1] == '\n')
 		input[strlen(input)-1] = 0;
 
-	    for (i = 0; i < sizeof(cmdlist) / sizeof(cmdlist[0]); ++i)
+	    for (i = 0; cmdlist[i].name; ++i)
 	    {
 		if (strncmp(input, cmdlist[i].name, strlen(input)) == 0)
 		{
@@ -2409,7 +2451,7 @@ int main(int argc, char* argv[])
 
     if (dirstack) free(dirstack);
 
-    return 0;
+    return retcode;
 }
 
 /*****************************************************************************/
