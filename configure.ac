@@ -37,8 +37,20 @@ AC_ARG_ENABLE(optimize,
           ;;
           no) ;;
           *) AC_MSG_ERROR(bad value ${enableval} for --enable-optimize) ;;
-          esac ],
-        [ optimize=false ])
+          esac ])
+
+# enable rbtree invariant testing by configure switch
+
+AC_ARG_ENABLE(rbtree-verify,
+	AS_HELP_STRING([--enable-rbtree-verify],
+		       [Build with full red-black tree testing @<:@default=no@:>@]),
+        [ case "${enableval}" in
+          yes)
+                CFLAGS="$CFLAGS -DRBTREE_VERIFY";
+          ;;
+          no) ;;
+          *) AC_MSG_ERROR(bad value ${enableval} for --enable-rbtree-verify) ;;
+          esac ])
 
 # check whether to enable gcov coverage flags and macros
 
@@ -50,7 +62,7 @@ AC_ARG_ENABLE(gcov,
          no)  gcov=false ;;
          *)   AC_MSG_ERROR([bad value ${enableval} for --enable-gcov]) ;;
          esac],
-        [gcov=false])
+        [ gcov=false ])
 
 AM_CONDITIONAL(GCOV, test x"$gcov" = "xtrue")
 

@@ -22,7 +22,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.      *
  *                                                                           *
  * Modifications 2009 by Timo Bingmann for duplicate key trees, opaque       *
- *   pointers and general code cleanup.                                      *
+ *   pointers, invariant testing and general code cleanup.                   *
  *                                                                           *
  *****************************************************************************/
 
@@ -287,7 +287,9 @@ struct rb_node *rb_insert(struct rb_tree *tree, void *key, void *value)
 
     ++tree->size;
 
+#ifdef RBTREE_VERIFY
     assert(rb_verify(tree));
+#endif
 
     return newnode;
 }
@@ -585,7 +587,9 @@ void rb_delete(struct rb_tree *tree, struct rb_node *z)
   
     --tree->size;
 
+#ifdef RBTREE_VERIFY
     assert(rb_verify(tree));
+#endif
 }
 
 /**

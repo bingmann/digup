@@ -59,14 +59,21 @@ am_test_digest_OBJECTS = test_digest.$(OBJEXT) digest.$(OBJEXT) \
 	crc32.$(OBJEXT)
 test_digest_OBJECTS = $(am_test_digest_OBJECTS)
 test_digest_LDADD = $(LDADD)
-am_test_digup_OBJECTS = test_digup.$(OBJEXT) rbtree.$(OBJEXT) \
-	digest.$(OBJEXT) md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) \
-	sha512.$(OBJEXT) crc32.$(OBJEXT)
+am_test_digup_OBJECTS = test_digup-test_digup.$(OBJEXT) \
+	test_digup-rbtree.$(OBJEXT) test_digup-digest.$(OBJEXT) \
+	test_digup-md5.$(OBJEXT) test_digup-sha1.$(OBJEXT) \
+	test_digup-sha256.$(OBJEXT) test_digup-sha512.$(OBJEXT) \
+	test_digup-crc32.$(OBJEXT)
 test_digup_OBJECTS = $(am_test_digup_OBJECTS)
 test_digup_LDADD = $(LDADD)
-am_test_rbtree_OBJECTS = test_rbtree.$(OBJEXT) rbtree.$(OBJEXT)
+test_digup_LINK = $(CCLD) $(test_digup_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
+	$(LDFLAGS) -o $@
+am_test_rbtree_OBJECTS = test_rbtree-test_rbtree.$(OBJEXT) \
+	test_rbtree-rbtree.$(OBJEXT)
 test_rbtree_OBJECTS = $(am_test_rbtree_OBJECTS)
 test_rbtree_LDADD = $(LDADD)
+test_rbtree_LINK = $(CCLD) $(test_rbtree_CFLAGS) $(CFLAGS) \
+	$(AM_LDFLAGS) $(LDFLAGS) -o $@
 DEFAULT_INCLUDES = -I.@am__isrc@
 depcomp = $(SHELL) $(top_srcdir)/acscripts/depcomp
 am__depfiles_maybe = depfiles
@@ -185,6 +192,7 @@ digup_SOURCES = digup.c \
 test_rbtree_SOURCES = test_rbtree.c \
 	rbtree.c rbtree.h
 
+test_rbtree_CFLAGS = -DRBTREE_VERIFY
 test_digest_SOURCES = test_digest.c \
 	digest.c digest.h \
 	md5.c md5.h sha1.c sha1.h \
@@ -198,6 +206,7 @@ test_digup_SOURCES = test_digup.c \
 	sha256.c sha256.h sha512.c sha512.h \
 	crc32.c crc32.h
 
+test_digup_CFLAGS = -DRBTREE_VERIFY
 all: all-am
 
 .SUFFIXES:
@@ -265,10 +274,10 @@ test_digest$(EXEEXT): $(test_digest_OBJECTS) $(test_digest_DEPENDENCIES)
 	$(LINK) $(test_digest_OBJECTS) $(test_digest_LDADD) $(LIBS)
 test_digup$(EXEEXT): $(test_digup_OBJECTS) $(test_digup_DEPENDENCIES) 
 	@rm -f test_digup$(EXEEXT)
-	$(LINK) $(test_digup_OBJECTS) $(test_digup_LDADD) $(LIBS)
+	$(test_digup_LINK) $(test_digup_OBJECTS) $(test_digup_LDADD) $(LIBS)
 test_rbtree$(EXEEXT): $(test_rbtree_OBJECTS) $(test_rbtree_DEPENDENCIES) 
 	@rm -f test_rbtree$(EXEEXT)
-	$(LINK) $(test_rbtree_OBJECTS) $(test_rbtree_LDADD) $(LIBS)
+	$(test_rbtree_LINK) $(test_rbtree_OBJECTS) $(test_rbtree_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -285,8 +294,16 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha256.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sha512.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digest.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_rbtree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-crc32.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-digest.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-md5.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-rbtree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-sha1.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-sha256.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-sha512.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_digup-test_digup.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_rbtree-rbtree.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_rbtree-test_rbtree.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -301,6 +318,146 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(COMPILE) -c `$(CYGPATH_W) '$<'`
+
+test_digup-test_digup.o: test_digup.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-test_digup.o -MD -MP -MF $(DEPDIR)/test_digup-test_digup.Tpo -c -o test_digup-test_digup.o `test -f 'test_digup.c' || echo '$(srcdir)/'`test_digup.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-test_digup.Tpo $(DEPDIR)/test_digup-test_digup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test_digup.c' object='test_digup-test_digup.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-test_digup.o `test -f 'test_digup.c' || echo '$(srcdir)/'`test_digup.c
+
+test_digup-test_digup.obj: test_digup.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-test_digup.obj -MD -MP -MF $(DEPDIR)/test_digup-test_digup.Tpo -c -o test_digup-test_digup.obj `if test -f 'test_digup.c'; then $(CYGPATH_W) 'test_digup.c'; else $(CYGPATH_W) '$(srcdir)/test_digup.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-test_digup.Tpo $(DEPDIR)/test_digup-test_digup.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test_digup.c' object='test_digup-test_digup.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-test_digup.obj `if test -f 'test_digup.c'; then $(CYGPATH_W) 'test_digup.c'; else $(CYGPATH_W) '$(srcdir)/test_digup.c'; fi`
+
+test_digup-rbtree.o: rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-rbtree.o -MD -MP -MF $(DEPDIR)/test_digup-rbtree.Tpo -c -o test_digup-rbtree.o `test -f 'rbtree.c' || echo '$(srcdir)/'`rbtree.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-rbtree.Tpo $(DEPDIR)/test_digup-rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rbtree.c' object='test_digup-rbtree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-rbtree.o `test -f 'rbtree.c' || echo '$(srcdir)/'`rbtree.c
+
+test_digup-rbtree.obj: rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-rbtree.obj -MD -MP -MF $(DEPDIR)/test_digup-rbtree.Tpo -c -o test_digup-rbtree.obj `if test -f 'rbtree.c'; then $(CYGPATH_W) 'rbtree.c'; else $(CYGPATH_W) '$(srcdir)/rbtree.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-rbtree.Tpo $(DEPDIR)/test_digup-rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rbtree.c' object='test_digup-rbtree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-rbtree.obj `if test -f 'rbtree.c'; then $(CYGPATH_W) 'rbtree.c'; else $(CYGPATH_W) '$(srcdir)/rbtree.c'; fi`
+
+test_digup-digest.o: digest.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-digest.o -MD -MP -MF $(DEPDIR)/test_digup-digest.Tpo -c -o test_digup-digest.o `test -f 'digest.c' || echo '$(srcdir)/'`digest.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-digest.Tpo $(DEPDIR)/test_digup-digest.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='digest.c' object='test_digup-digest.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-digest.o `test -f 'digest.c' || echo '$(srcdir)/'`digest.c
+
+test_digup-digest.obj: digest.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-digest.obj -MD -MP -MF $(DEPDIR)/test_digup-digest.Tpo -c -o test_digup-digest.obj `if test -f 'digest.c'; then $(CYGPATH_W) 'digest.c'; else $(CYGPATH_W) '$(srcdir)/digest.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-digest.Tpo $(DEPDIR)/test_digup-digest.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='digest.c' object='test_digup-digest.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-digest.obj `if test -f 'digest.c'; then $(CYGPATH_W) 'digest.c'; else $(CYGPATH_W) '$(srcdir)/digest.c'; fi`
+
+test_digup-md5.o: md5.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-md5.o -MD -MP -MF $(DEPDIR)/test_digup-md5.Tpo -c -o test_digup-md5.o `test -f 'md5.c' || echo '$(srcdir)/'`md5.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-md5.Tpo $(DEPDIR)/test_digup-md5.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='md5.c' object='test_digup-md5.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-md5.o `test -f 'md5.c' || echo '$(srcdir)/'`md5.c
+
+test_digup-md5.obj: md5.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-md5.obj -MD -MP -MF $(DEPDIR)/test_digup-md5.Tpo -c -o test_digup-md5.obj `if test -f 'md5.c'; then $(CYGPATH_W) 'md5.c'; else $(CYGPATH_W) '$(srcdir)/md5.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-md5.Tpo $(DEPDIR)/test_digup-md5.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='md5.c' object='test_digup-md5.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-md5.obj `if test -f 'md5.c'; then $(CYGPATH_W) 'md5.c'; else $(CYGPATH_W) '$(srcdir)/md5.c'; fi`
+
+test_digup-sha1.o: sha1.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-sha1.o -MD -MP -MF $(DEPDIR)/test_digup-sha1.Tpo -c -o test_digup-sha1.o `test -f 'sha1.c' || echo '$(srcdir)/'`sha1.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-sha1.Tpo $(DEPDIR)/test_digup-sha1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sha1.c' object='test_digup-sha1.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-sha1.o `test -f 'sha1.c' || echo '$(srcdir)/'`sha1.c
+
+test_digup-sha1.obj: sha1.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-sha1.obj -MD -MP -MF $(DEPDIR)/test_digup-sha1.Tpo -c -o test_digup-sha1.obj `if test -f 'sha1.c'; then $(CYGPATH_W) 'sha1.c'; else $(CYGPATH_W) '$(srcdir)/sha1.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-sha1.Tpo $(DEPDIR)/test_digup-sha1.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sha1.c' object='test_digup-sha1.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-sha1.obj `if test -f 'sha1.c'; then $(CYGPATH_W) 'sha1.c'; else $(CYGPATH_W) '$(srcdir)/sha1.c'; fi`
+
+test_digup-sha256.o: sha256.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-sha256.o -MD -MP -MF $(DEPDIR)/test_digup-sha256.Tpo -c -o test_digup-sha256.o `test -f 'sha256.c' || echo '$(srcdir)/'`sha256.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-sha256.Tpo $(DEPDIR)/test_digup-sha256.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sha256.c' object='test_digup-sha256.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-sha256.o `test -f 'sha256.c' || echo '$(srcdir)/'`sha256.c
+
+test_digup-sha256.obj: sha256.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-sha256.obj -MD -MP -MF $(DEPDIR)/test_digup-sha256.Tpo -c -o test_digup-sha256.obj `if test -f 'sha256.c'; then $(CYGPATH_W) 'sha256.c'; else $(CYGPATH_W) '$(srcdir)/sha256.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-sha256.Tpo $(DEPDIR)/test_digup-sha256.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sha256.c' object='test_digup-sha256.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-sha256.obj `if test -f 'sha256.c'; then $(CYGPATH_W) 'sha256.c'; else $(CYGPATH_W) '$(srcdir)/sha256.c'; fi`
+
+test_digup-sha512.o: sha512.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-sha512.o -MD -MP -MF $(DEPDIR)/test_digup-sha512.Tpo -c -o test_digup-sha512.o `test -f 'sha512.c' || echo '$(srcdir)/'`sha512.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-sha512.Tpo $(DEPDIR)/test_digup-sha512.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sha512.c' object='test_digup-sha512.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-sha512.o `test -f 'sha512.c' || echo '$(srcdir)/'`sha512.c
+
+test_digup-sha512.obj: sha512.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-sha512.obj -MD -MP -MF $(DEPDIR)/test_digup-sha512.Tpo -c -o test_digup-sha512.obj `if test -f 'sha512.c'; then $(CYGPATH_W) 'sha512.c'; else $(CYGPATH_W) '$(srcdir)/sha512.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-sha512.Tpo $(DEPDIR)/test_digup-sha512.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='sha512.c' object='test_digup-sha512.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-sha512.obj `if test -f 'sha512.c'; then $(CYGPATH_W) 'sha512.c'; else $(CYGPATH_W) '$(srcdir)/sha512.c'; fi`
+
+test_digup-crc32.o: crc32.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-crc32.o -MD -MP -MF $(DEPDIR)/test_digup-crc32.Tpo -c -o test_digup-crc32.o `test -f 'crc32.c' || echo '$(srcdir)/'`crc32.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-crc32.Tpo $(DEPDIR)/test_digup-crc32.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='crc32.c' object='test_digup-crc32.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-crc32.o `test -f 'crc32.c' || echo '$(srcdir)/'`crc32.c
+
+test_digup-crc32.obj: crc32.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -MT test_digup-crc32.obj -MD -MP -MF $(DEPDIR)/test_digup-crc32.Tpo -c -o test_digup-crc32.obj `if test -f 'crc32.c'; then $(CYGPATH_W) 'crc32.c'; else $(CYGPATH_W) '$(srcdir)/crc32.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_digup-crc32.Tpo $(DEPDIR)/test_digup-crc32.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='crc32.c' object='test_digup-crc32.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_digup_CFLAGS) $(CFLAGS) -c -o test_digup-crc32.obj `if test -f 'crc32.c'; then $(CYGPATH_W) 'crc32.c'; else $(CYGPATH_W) '$(srcdir)/crc32.c'; fi`
+
+test_rbtree-test_rbtree.o: test_rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -MT test_rbtree-test_rbtree.o -MD -MP -MF $(DEPDIR)/test_rbtree-test_rbtree.Tpo -c -o test_rbtree-test_rbtree.o `test -f 'test_rbtree.c' || echo '$(srcdir)/'`test_rbtree.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_rbtree-test_rbtree.Tpo $(DEPDIR)/test_rbtree-test_rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test_rbtree.c' object='test_rbtree-test_rbtree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -c -o test_rbtree-test_rbtree.o `test -f 'test_rbtree.c' || echo '$(srcdir)/'`test_rbtree.c
+
+test_rbtree-test_rbtree.obj: test_rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -MT test_rbtree-test_rbtree.obj -MD -MP -MF $(DEPDIR)/test_rbtree-test_rbtree.Tpo -c -o test_rbtree-test_rbtree.obj `if test -f 'test_rbtree.c'; then $(CYGPATH_W) 'test_rbtree.c'; else $(CYGPATH_W) '$(srcdir)/test_rbtree.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_rbtree-test_rbtree.Tpo $(DEPDIR)/test_rbtree-test_rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='test_rbtree.c' object='test_rbtree-test_rbtree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -c -o test_rbtree-test_rbtree.obj `if test -f 'test_rbtree.c'; then $(CYGPATH_W) 'test_rbtree.c'; else $(CYGPATH_W) '$(srcdir)/test_rbtree.c'; fi`
+
+test_rbtree-rbtree.o: rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -MT test_rbtree-rbtree.o -MD -MP -MF $(DEPDIR)/test_rbtree-rbtree.Tpo -c -o test_rbtree-rbtree.o `test -f 'rbtree.c' || echo '$(srcdir)/'`rbtree.c
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_rbtree-rbtree.Tpo $(DEPDIR)/test_rbtree-rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rbtree.c' object='test_rbtree-rbtree.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -c -o test_rbtree-rbtree.o `test -f 'rbtree.c' || echo '$(srcdir)/'`rbtree.c
+
+test_rbtree-rbtree.obj: rbtree.c
+@am__fastdepCC_TRUE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -MT test_rbtree-rbtree.obj -MD -MP -MF $(DEPDIR)/test_rbtree-rbtree.Tpo -c -o test_rbtree-rbtree.obj `if test -f 'rbtree.c'; then $(CYGPATH_W) 'rbtree.c'; else $(CYGPATH_W) '$(srcdir)/rbtree.c'; fi`
+@am__fastdepCC_TRUE@	mv -f $(DEPDIR)/test_rbtree-rbtree.Tpo $(DEPDIR)/test_rbtree-rbtree.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	source='rbtree.c' object='test_rbtree-rbtree.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(test_rbtree_CFLAGS) $(CFLAGS) -c -o test_rbtree-rbtree.obj `if test -f 'rbtree.c'; then $(CYGPATH_W) 'rbtree.c'; else $(CYGPATH_W) '$(srcdir)/rbtree.c'; fi`
 
 ID: $(HEADERS) $(SOURCES) $(LISP) $(TAGS_FILES)
 	list='$(SOURCES) $(HEADERS) $(LISP) $(TAGS_FILES)'; \

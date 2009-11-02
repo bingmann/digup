@@ -22,7 +22,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.      *
  *                                                                           *
  * Modifications 2009 by Timo Bingmann for duplicate key trees, opaque       *
- *   pointers and general code cleanup.                                      *
+ *   pointers, invariant testing and general code cleanup.                   *
  *                                                                           *
  *****************************************************************************/
 
