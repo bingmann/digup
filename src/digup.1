@@ -8,24 +8,24 @@ digup \- \fBDig\fPest file \fBup\fPdating program.
 digup [\fIOPTIONS\fP]
 .SH "DESCRIPTION"
 .LP
-digup is a tool to update md5sum or shasum digest files. It will read these digest files, check the current directory for new, updated, modified or deleted files and query the user with a summary of changes.
+digup is a tool to update md5sum or shasum digest files. It will read existing digest files, check the current directory for new, updated, modified, renamed or deleted files and query the user with a summary of changes. After reviewing the updates, they can be written back to the digest file.
 
-One of the envisioned applications of digup is updating and verification of incremental archives or music collections. By using digup possibly undesired changes or lost files can be easily detected while quickly adding newly added files.
+One of the envisioned applications of digup is to update and verify incremental archives like chronological data storages or music collections. By using digup possibly undesired changes or lost files can easily be detected while quickly adding new files.
 
-Another purpose could be to automatically verify the integrity of hard disk copies of archives as backups to hard disks are becoming popular. Using a full file digest scan even slowly creeping bad blocks on old hard disks can be detected. By using a crontab entry, this check could be performed unattended and routinely.
+Another purpose could be to automatically verify the integrity of hard disk copies of archives, as backups to hard disks are becoming increasingly popular. Using a full file digest scan even slowly creeping bad blocks on old hard disks can be detected. By using a crontab entry, this check can be performed unattended and routinely.
 
-In normal operation, only touched files with newer modification times are fully read and their digest compared. Optionally a full scan can be performed to test all file contents to the expected digests.
+In normal operation only touched files with newer modification times are fully read and their digest compared. Optionally a full scan can be performed to test all file contents against their expected digests.
 
 Symbolic links are supported by either following the link and reading the target's digest or by saving only the link target path and verifying it against the old one.
 
-The digest files written by digup are compatible with those generated and read by md5sum and similar programs from the coreutils package. Additional information like file size and modification time or symlinks are stored on comment lines.
+The digest files written by digup are compatible with those generated and read by md5sum and similar programs from the coreutils package. Additional information like file size and modification time or symlink targets are stored on comment lines.
 
-Four digest algorithms are supported: MD5, SHA1, SHA256 and SHA512. The digest file itself is also checksumed using CRC32 against unintentional changes. A fast red-black binary tree is used for the file list.
+Four digest algorithms are supported: MD5, SHA1, SHA256 and SHA512. The digest file itself is also checksummed using CRC32 against unintentional changes. A fast red-black binary tree is used for the internal file list, allowing fast operation on a large number of files.
 .SH "OPTIONS"
 .LP
 .TP
 \fB\-b\fR, \fB\-\-batch\fR
-Enable non-interactive batch processing mode as needed e.g. when run from cron. This option also decreases verbosity (--quiet) by one level. The returned error code is set to 1 if any changed, renamed, moved, deleted files or read errors occur.
+Enable non-interactive batch processing mode as needed when run unattended e.g. from cron. This option also decreases verbosity by one level (--quiet). The returned error code is set to 1 if any changed, renamed, moved, deleted files or read errors occur.
 .TP
 \fB\-c\fR, \fB\-\-check\fR
 Perform a full digest scan of all file contents, thus ignoring file modification times. Without this option files with equal size and modification time are skipped.
@@ -34,10 +34,10 @@ Perform a full digest scan of all file contents, thus ignoring file modification
 Change into this directory before looking for digest files or performing a recursive scan.
 .TP
 \fB\-f\fR, \fB\-\-file\fR=\fI<file>\fR
-Check this file or existing digests and possibly write updates to it. Depending on the selected digest --type the following file names are used by default: "md5sum.txt", "sha1sum.txt", "sha256sum.txt" or "sha512sum.txt".
+Check this file for existing digests and write updates to it. Depending on the selected digest --type the following file names are used by default: "md5sum.txt", "sha1sum.txt", "sha256sum.txt" or "sha512sum.txt".
 .TP
 \fB\-l\fR, \fB\-\-links\fR
-When enabled symbolic links (if supported on the platform) are followed. Otherwise, by default, only the symbolic link's destination path is saved and verified.
+When this flag is enabled, symbolic links (if supported on the platform) are followed. Otherwise, by default, only the symbolic link's target path is saved and verified.
 .TP
 \fB\-m\fR, \fB\-\-modified\fR
 Print only modified, changed, copied, renamed or deleted files. Unchanged files lines are suppressed. If the whole digest file is clean, then no summary output is printed at all. This option is useful for crontabs in combination with --batch.
@@ -48,7 +48,7 @@ Reduces the level of verbosity by one.
 \fB\-t\fR, \fB\-\-type\fR=\fI<digest-type>\fR
 Select the digest type for newly created digest files. This is not needed for updating existing one, as the type can inferred from the digest length.
 
-digest-type must be md5, sha1, sha256 or sha512. The default digest type is SHA1.
+digest-type must be md5, sha1, sha256 or sha512. The default digest type is sha1.
 .TP
 \fB\-u\fR, \fB\-\-update\fR
 Automatically update the digest file in batch mode. Requires --batch, which is not automatically activated by this option.
@@ -80,3 +80,5 @@ Timo Bingmann (tb (at) idlebox <dot> net)
 .SH "SEE ALSO"
 .LP
 md5sum(1), sha1sum(1), sha256sum(1), sha512sum(1)
+
+\"  LocalWords:  storages coreutils digup symlink
