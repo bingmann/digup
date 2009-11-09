@@ -35,9 +35,10 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = digup$(EXEEXT)
-noinst_PROGRAMS = test_rbtree$(EXEEXT) test_digest$(EXEEXT) \
-	test_digup$(EXEEXT)
-TESTS = test_rbtree$(EXEEXT) test_digest$(EXEEXT) test_digup$(EXEEXT)
+@BUILDTESTS_TRUE@noinst_PROGRAMS = test_rbtree$(EXEEXT) \
+@BUILDTESTS_TRUE@	test_digest$(EXEEXT) test_digup$(EXEEXT)
+@BUILDTESTS_TRUE@TESTS = test_rbtree$(EXEEXT) test_digest$(EXEEXT) \
+@BUILDTESTS_TRUE@	test_digup$(EXEEXT)
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -54,22 +55,35 @@ am_digup_OBJECTS = digup.$(OBJEXT) rbtree.$(OBJEXT) digest.$(OBJEXT) \
 	crc32.$(OBJEXT)
 digup_OBJECTS = $(am_digup_OBJECTS)
 digup_LDADD = $(LDADD)
-am_test_digest_OBJECTS = test_digest.$(OBJEXT) digest.$(OBJEXT) \
-	md5.$(OBJEXT) sha1.$(OBJEXT) sha256.$(OBJEXT) sha512.$(OBJEXT) \
-	crc32.$(OBJEXT)
+am__test_digest_SOURCES_DIST = test_digest.c digest.c digest.h md5.c \
+	md5.h sha1.c sha1.h sha256.c sha256.h sha512.c sha512.h \
+	crc32.c crc32.h
+@BUILDTESTS_TRUE@am_test_digest_OBJECTS = test_digest.$(OBJEXT) \
+@BUILDTESTS_TRUE@	digest.$(OBJEXT) md5.$(OBJEXT) sha1.$(OBJEXT) \
+@BUILDTESTS_TRUE@	sha256.$(OBJEXT) sha512.$(OBJEXT) \
+@BUILDTESTS_TRUE@	crc32.$(OBJEXT)
 test_digest_OBJECTS = $(am_test_digest_OBJECTS)
 test_digest_LDADD = $(LDADD)
-am_test_digup_OBJECTS = test_digup-test_digup.$(OBJEXT) \
-	test_digup-rbtree.$(OBJEXT) test_digup-digest.$(OBJEXT) \
-	test_digup-md5.$(OBJEXT) test_digup-sha1.$(OBJEXT) \
-	test_digup-sha256.$(OBJEXT) test_digup-sha512.$(OBJEXT) \
-	test_digup-crc32.$(OBJEXT)
+am__test_digup_SOURCES_DIST = test_digup.c rbtree.c rbtree.h digest.c \
+	digest.h md5.c md5.h sha1.c sha1.h sha256.c sha256.h sha512.c \
+	sha512.h crc32.c crc32.h
+@BUILDTESTS_TRUE@am_test_digup_OBJECTS =  \
+@BUILDTESTS_TRUE@	test_digup-test_digup.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-rbtree.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-digest.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-md5.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-sha1.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-sha256.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-sha512.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_digup-crc32.$(OBJEXT)
 test_digup_OBJECTS = $(am_test_digup_OBJECTS)
 test_digup_LDADD = $(LDADD)
 test_digup_LINK = $(CCLD) $(test_digup_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) \
 	$(LDFLAGS) -o $@
-am_test_rbtree_OBJECTS = test_rbtree-test_rbtree.$(OBJEXT) \
-	test_rbtree-rbtree.$(OBJEXT)
+am__test_rbtree_SOURCES_DIST = test_rbtree.c rbtree.c rbtree.h
+@BUILDTESTS_TRUE@am_test_rbtree_OBJECTS =  \
+@BUILDTESTS_TRUE@	test_rbtree-test_rbtree.$(OBJEXT) \
+@BUILDTESTS_TRUE@	test_rbtree-rbtree.$(OBJEXT)
 test_rbtree_OBJECTS = $(am_test_rbtree_OBJECTS)
 test_rbtree_LDADD = $(LDADD)
 test_rbtree_LINK = $(CCLD) $(test_rbtree_CFLAGS) $(CFLAGS) \
@@ -83,8 +97,8 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 SOURCES = $(digup_SOURCES) $(test_digest_SOURCES) \
 	$(test_digup_SOURCES) $(test_rbtree_SOURCES)
-DIST_SOURCES = $(digup_SOURCES) $(test_digest_SOURCES) \
-	$(test_digup_SOURCES) $(test_rbtree_SOURCES)
+DIST_SOURCES = $(digup_SOURCES) $(am__test_digest_SOURCES_DIST) \
+	$(am__test_digup_SOURCES_DIST) $(am__test_rbtree_SOURCES_DIST)
 man1dir = $(mandir)/man1
 NROFF = nroff
 MANS = $(man1_MANS)
@@ -193,24 +207,24 @@ digup_SOURCES = digup.c \
 	crc32.c crc32.h
 
 man1_MANS = digup.1
-test_rbtree_SOURCES = test_rbtree.c \
-	rbtree.c rbtree.h
+@BUILDTESTS_TRUE@test_rbtree_SOURCES = test_rbtree.c \
+@BUILDTESTS_TRUE@	rbtree.c rbtree.h
 
-test_rbtree_CFLAGS = -DRBTREE_VERIFY
-test_digest_SOURCES = test_digest.c \
-	digest.c digest.h \
-	md5.c md5.h sha1.c sha1.h \
-	sha256.c sha256.h sha512.c sha512.h \
-	crc32.c crc32.h
+@BUILDTESTS_TRUE@test_rbtree_CFLAGS = -DRBTREE_VERIFY
+@BUILDTESTS_TRUE@test_digest_SOURCES = test_digest.c \
+@BUILDTESTS_TRUE@	digest.c digest.h \
+@BUILDTESTS_TRUE@	md5.c md5.h sha1.c sha1.h \
+@BUILDTESTS_TRUE@	sha256.c sha256.h sha512.c sha512.h \
+@BUILDTESTS_TRUE@	crc32.c crc32.h
 
-test_digup_SOURCES = test_digup.c \
-	rbtree.c rbtree.h \
-	digest.c digest.h \
-	md5.c md5.h sha1.c sha1.h \
-	sha256.c sha256.h sha512.c sha512.h \
-	crc32.c crc32.h
+@BUILDTESTS_TRUE@test_digup_SOURCES = test_digup.c \
+@BUILDTESTS_TRUE@	rbtree.c rbtree.h \
+@BUILDTESTS_TRUE@	digest.c digest.h \
+@BUILDTESTS_TRUE@	md5.c md5.h sha1.c sha1.h \
+@BUILDTESTS_TRUE@	sha256.c sha256.h sha512.c sha512.h \
+@BUILDTESTS_TRUE@	crc32.c crc32.h
 
-test_digup_CFLAGS = -DRBTREE_VERIFY
+@BUILDTESTS_TRUE@test_digup_CFLAGS = -DRBTREE_VERIFY
 all: all-am
 
 .SUFFIXES:

@@ -43,7 +43,7 @@ AC_ARG_ENABLE(optimize,
 
 AC_ARG_ENABLE(rbtree-verify,
 	AS_HELP_STRING([--enable-rbtree-verify],
-		       [Build with full red-black tree testing @<:@default=no@:>@]),
+		       [Build digup with full red-black tree testing @<:@default=no@:>@]),
         [ case "${enableval}" in
           yes)
                 CFLAGS="$CFLAGS -DRBTREE_VERIFY";
@@ -51,6 +51,20 @@ AC_ARG_ENABLE(rbtree-verify,
           no) ;;
           *) AC_MSG_ERROR(bad value ${enableval} for --enable-rbtree-verify) ;;
           esac ])
+
+# possibly disable building of test programs by configure switch
+
+AC_ARG_ENABLE(tests,
+    AS_HELP_STRING([--disable-tests],
+                   [Disable building of test program suite @<:@default=no@:>@]),
+	[ case "${enableval}" in
+          yes) buildtests=true ;;
+          no)  buildtests=false ;;
+          *)   AC_MSG_ERROR([bad value ${enableval} for --disable-tests]) ;;
+          esac ],
+        [ buildtests=true ])
+
+AM_CONDITIONAL(BUILDTESTS, test x"$buildtests" = "xtrue")
 
 # check whether to enable gcov coverage flags and macros
 

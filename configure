@@ -658,6 +658,8 @@ CFLAGS
 CC
 GCOV_FALSE
 GCOV_TRUE
+BUILDTESTS_FALSE
+BUILDTESTS_TRUE
 host_os
 host_vendor
 host_cpu
@@ -731,6 +733,7 @@ ac_user_opts='
 enable_option_checking
 enable_optimize
 enable_rbtree_verify
+enable_tests
 enable_gcov
 enable_largefile
 enable_dependency_tracking
@@ -1375,7 +1378,9 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --enable-optimize       Build with full optimization [default=no]
-  --enable-rbtree-verify  Build with full red-black tree testing [default=no]
+  --enable-rbtree-verify  Build digup with full red-black tree testing
+                          [default=no]
+  --disable-tests         Disable building of test program suite [default=no]
   --enable-gcov           enable test coverage with gcov [default=no]
   --disable-largefile     omit support for large files
   --disable-dependency-tracking  speeds up one-time build
@@ -2472,6 +2477,31 @@ if test "${enable_rbtree_verify+set}" = set; then
 $as_echo "$as_me: error: bad value ${enableval} for --enable-rbtree-verify" >&2;}
    { (exit 1); exit 1; }; } ;;
           esac
+fi
+
+
+# possibly disable building of test programs by configure switch
+
+# Check whether --enable-tests was given.
+if test "${enable_tests+set}" = set; then
+  enableval=$enable_tests;  case "${enableval}" in
+          yes) buildtests=true ;;
+          no)  buildtests=false ;;
+          *)   { { $as_echo "$as_me:$LINENO: error: bad value ${enableval} for --disable-tests" >&5
+$as_echo "$as_me: error: bad value ${enableval} for --disable-tests" >&2;}
+   { (exit 1); exit 1; }; } ;;
+          esac
+else
+   buildtests=true
+fi
+
+
+ if test x"$buildtests" = "xtrue"; then
+  BUILDTESTS_TRUE=
+  BUILDTESTS_FALSE='#'
+else
+  BUILDTESTS_TRUE='#'
+  BUILDTESTS_FALSE=
 fi
 
 
@@ -5926,6 +5956,13 @@ LIBOBJS=$ac_libobjs
 LTLIBOBJS=$ac_ltlibobjs
 
 
+if test -z "${BUILDTESTS_TRUE}" && test -z "${BUILDTESTS_FALSE}"; then
+  { { $as_echo "$as_me:$LINENO: error: conditional \"BUILDTESTS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&5
+$as_echo "$as_me: error: conditional \"BUILDTESTS\" was never defined.
+Usually this means the macro was only invoked conditionally." >&2;}
+   { (exit 1); exit 1; }; }
+fi
 if test -z "${GCOV_TRUE}" && test -z "${GCOV_FALSE}"; then
   { { $as_echo "$as_me:$LINENO: error: conditional \"GCOV\" was never defined.
 Usually this means the macro was only invoked conditionally." >&5

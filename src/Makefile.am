@@ -13,6 +13,8 @@ digup_SOURCES = digup.c \
 
 man1_MANS = digup.1
 
+if BUILDTESTS
+
 noinst_PROGRAMS = test_rbtree test_digest test_digup
 
 TESTS = test_rbtree test_digest test_digup
@@ -36,3 +38,5 @@ test_digup_SOURCES = test_digup.c \
 	crc32.c crc32.h
 
 test_digup_CFLAGS = -DRBTREE_VERIFY
+
+endif
