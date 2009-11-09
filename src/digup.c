@@ -2179,7 +2179,7 @@ void print_usage(void)
 
     printf("Usage: %s [OPTIONS...]\n"
 	   "\n"
-	   "Read, verify and update MD5 or SHA digest files.\n"
+	   "Tool to read, verify and update MD5 or SHA digest files.\n"
 	   "\n", g_progname);
 
     printf("Looks for a digest file (defaults to \"md5sum.txt\", \"sha1sum.txt\",\n"
@@ -2204,7 +2204,7 @@ void print_usage(void)
     printf("  -v, --verbose         increase status printing during scanning.\n");
     printf("\n");
 
-    printf("See \"man 1 digup\" for further explanations.\n");
+    printf("See \"man 1 digup\" for further explanations. This is digup " VERSION "\n");
     printf("\n");
 }
 
