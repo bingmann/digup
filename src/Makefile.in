@@ -40,7 +40,8 @@ bin_PROGRAMS = digup$(EXEEXT)
 @BUILDTESTS_TRUE@TESTS = test_rbtree$(EXEEXT) test_digest$(EXEEXT) \
 @BUILDTESTS_TRUE@	test_digup$(EXEEXT)
 subdir = src
-DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
+DIST_COMMON = $(dist_man1_MANS) $(srcdir)/Makefile.am \
+	$(srcdir)/Makefile.in
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -101,7 +102,7 @@ DIST_SOURCES = $(digup_SOURCES) $(am__test_digest_SOURCES_DIST) \
 	$(am__test_digup_SOURCES_DIST) $(am__test_rbtree_SOURCES_DIST)
 man1dir = $(mandir)/man1
 NROFF = nroff
-MANS = $(man1_MANS)
+MANS = $(dist_man1_MANS)
 ETAGS = etags
 CTAGS = ctags
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
@@ -206,7 +207,7 @@ digup_SOURCES = digup.c \
 	sha256.c sha256.h sha512.c sha512.h \
 	crc32.c crc32.h
 
-man1_MANS = digup.1
+dist_man1_MANS = digup.1
 @BUILDTESTS_TRUE@test_rbtree_SOURCES = test_rbtree.c \
 @BUILDTESTS_TRUE@	rbtree.c rbtree.h
 
