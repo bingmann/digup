@@ -200,7 +200,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-AM_CFLAGS = -W -Wall -pedantic
+AM_CFLAGS = -W -Wall -pedantic -Wno-long-long
 digup_SOURCES = digup.c \
 	rbtree.c rbtree.h \
 	digest.c digest.h \

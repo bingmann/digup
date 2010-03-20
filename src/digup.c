@@ -63,7 +63,7 @@ struct FileInfo
 {
     enum FileStatus	status;
     time_t		mtime;
-    ssize_t		size;
+    long long		size;
     char*		error;
     digest_result*	digest;
     char*               symlink; /* target actually */
@@ -2110,9 +2110,9 @@ bool cmd_write(void)
 	if (fileinfo->symlink)
 	{
 	    if (needescape_filename(&fileinfo->symlink)) /* may replace the symlink string */
-		fprintfcrc(&crc, sumfile, "#: mtime %ld size %d target\\ %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
+		fprintfcrc(&crc, sumfile, "#: mtime %ld size %lld target\\ %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
 	    else
-		fprintfcrc(&crc, sumfile, "#: mtime %ld size %d target %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
+		fprintfcrc(&crc, sumfile, "#: mtime %ld size %lld target %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
 
 	    if (needescape_filename(&filename)) /* may replace the filename string */
 		fprintfcrc(&crc, sumfile, "#: symlink\\ %s\n", filename);
@@ -2121,7 +2121,7 @@ bool cmd_write(void)
 	}
 	else
 	{
-	    fprintfcrc(&crc, sumfile, "#: mtime %ld size %d\n", fileinfo->mtime, fileinfo->size);
+	    fprintfcrc(&crc, sumfile, "#: mtime %ld size %lld\n", fileinfo->mtime, fileinfo->size);
 
 	    if (needescape_filename(&filename)) /* may replace the filename string */
 		fprintfcrc(&crc, sumfile, "\\");
