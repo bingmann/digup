@@ -965,6 +965,8 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 
 	rb_insert(g_filelist, filename, fileinfo);
 
+	gopt_digesttype = this_digesttype;
+
 	/* return +1 here to clear tempinfo. */
 	return 1;
     }
@@ -2261,10 +2263,7 @@ int main(int argc, char* argv[])
 	    break;
 
 	case 'f':
-	    if (gopt_digestfile)
-		free(gopt_digestfile);
-
-	    gopt_digestfile = strdup(optarg);
+	    gopt_digestfile = optarg;
 	    break;
 
 	case 'h':

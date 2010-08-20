@@ -1,0 +1,13 @@
+2010-08-20 10:49  Timo Bingmann
+
+	* src/digup.c: Fixed string allocation bug causing a segfault when
+	using -t followed by -f parameters.
+
+2010-03-20 14:27  Timo Bingmann
+
+	* src/digup.c: Changing size variable from ssize_t to long long to
+	enable support for large files.
+
+2009-11-10 14:57  Timo Bingmann
+
+	* Initial release of 0.6.23
