@@ -1,7 +1,7 @@
 /*****************************************************************************
  * digup.c - Digest File Updating Program                                    *
  *                                                                           *
- * Copyright (C) 2009 Timo Bingmann                                          *
+ * Copyright (C) 2010 Timo Bingmann                                          *
  *                                                                           *
  * This program is free software; you can redistribute it and/or modify it   *
  * under the terms of the GNU General Public License as published by the     *
