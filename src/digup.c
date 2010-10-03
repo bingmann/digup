@@ -187,16 +187,16 @@ static int asprintf(char **strp, const char *fmt, ...)
     char *out;
 
     va_start(ap, fmt);
-
     len = vsnprintf(NULL, 0, fmt, ap) + 1;
+    va_end (ap);
 
     out = malloc(len);
     if (out == NULL) return -1;
 
+    va_start(ap, fmt);
     len = vsnprintf(out, len, fmt, ap);
-    *strp = out;
-
     va_end (ap);
+    *strp = out;
 
     return len;
 }
@@ -297,8 +297,8 @@ int fprintfcrc(uint32_t *crc, FILE* fp, const char *fmt, ...)
     static ssize_t outlen = 0;
 
     va_start(ap, fmt);
-
     len = vsnprintf(NULL, 0, fmt, ap) + 1;
+    va_end (ap);
 
     if (outlen < len)
     {
@@ -312,12 +312,12 @@ int fprintfcrc(uint32_t *crc, FILE* fp, const char *fmt, ...)
 	if (out == NULL) return -1;
     }
 
+    va_start(ap, fmt);
     len = vsnprintf(out, len, fmt, ap);
+    va_end (ap);
 
     *crc = crc32(*crc, (unsigned char*)out, len);
     len = fwrite(out, len, 1, fp);
-    
-    va_end (ap);
 
     return len;
 }
