@@ -86,6 +86,7 @@ bool gopt_onlymodified = FALSE;
 bool gopt_update = FALSE;
 char* gopt_digestfile = NULL;
 enum DigestType gopt_digesttype = DT_NONE;
+unsigned int gopt_modify_window = 0;
 
 /* red-black tree mapping filename string -> struct FileInfo */
 
@@ -1209,7 +1210,7 @@ bool process_file(const char* filepath, const struct stat* st)
 		fprintf(stdout, "check ");
 	    }
 	}
-	else if (st->st_mtime != fileinfo->mtime ||
+	else if ((unsigned int)abs(st->st_mtime - fileinfo->mtime) > gopt_modify_window ||
 		 st->st_size != fileinfo->size)
 	{
 	    if (gopt_verbose >= 2) {
@@ -2231,6 +2232,7 @@ int main(int argc, char* argv[])
 		{ "type",   	required_argument, 0, 't' },
 		{ "update",     no_argument,       0, 'u' },
 		{ "verbose",    no_argument,       0, 'v' },
+		{ "modify-window", required_argument, 0, 1 },
 		{ NULL,	    	0,                 0, 0 }
 	    };
 
@@ -2244,6 +2246,18 @@ int main(int argc, char* argv[])
 
 	switch (c)
 	{
+	case 1:
+	{
+	    char *endp;
+	    gopt_modify_window = strtoul(optarg, &endp, 10);
+	    if (!endp || *endp) {
+		fprintf(stderr, "%s: invalid valid for modify window: use an unsigned integer\n",
+			g_progname);
+		return -1;
+	    }
+	    break;
+	}
+
 	case 'b':
 	    gopt_batch = TRUE;
 	    --gopt_verbose;
