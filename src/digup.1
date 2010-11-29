@@ -33,6 +33,11 @@ Perform a full digest scan of all file contents, thus ignoring file modification
 \fB\-d\fR, \fB\-\-directory\fR=\fI<path>\fR
 Change into this directory before looking for digest files or performing a recursive scan.
 .TP
+\fB\-\-exclude\-marker\fR=\fI<file>\fR
+Sets a marker file, often called ".nobackup" in other programs. If this marker file is found in a directory, the directory itself and all sub-directories are excluded from the digest scan.
+
+This option is persistent. It is saved in the digest file and will be applied to all future scans performed to check or update digests.
+.TP
 \fB\-f\fR, \fB\-\-file\fR=\fI<file>\fR
 Check this file for existing digests and write updates to it. Depending on the selected digest --type the following file names are used by default: "md5sum.txt", "sha1sum.txt", "sha256sum.txt" or "sha512sum.txt".
 .TP
@@ -41,6 +46,9 @@ When this flag is enabled, symbolic links (if supported on the platform) are fol
 .TP
 \fB\-m\fR, \fB\-\-modified\fR
 Print only modified, changed, copied, renamed or deleted files. Unchanged files lines are suppressed. If the whole digest file is clean, then no summary output is printed at all. This option is useful for crontabs in combination with --batch.
+.TP
+\fB\-\-modify\-window\fR=\fI<integer>\fI
+Consider modification time deltas of up to this value to be unchanged (the default is zero). This option is very useful for checking backups on FAT filesystems, as FAT stores modification times with a precision of only 2 seconds.
 .TP
 \fB\-q\fR, \fB\-\-quiet\fR
 Reduces the level of verbosity by one.
@@ -81,4 +89,4 @@ Timo Bingmann (tb (at) idlebox <dot> net)
 .LP
 md5sum(1), sha1sum(1), sha256sum(1), sha512sum(1)
 
-\"  LocalWords:  storages coreutils digup symlink
+\"  LocalWords:  storages coreutils digup symlink filesystems crontab

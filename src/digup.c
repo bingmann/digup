@@ -87,6 +87,7 @@ bool gopt_update = FALSE;
 char* gopt_digestfile = NULL;
 enum DigestType gopt_digesttype = DT_NONE;
 unsigned int gopt_modify_window = 0;
+const char* gopt_exclude_marker = NULL;
 
 /* red-black tree mapping filename string -> struct FileInfo */
 
@@ -566,7 +567,7 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
     if (line[p] == '#')
     {
 	/* if first character is a hash then the line might be a
-	   comment our custom mtime indicator. */
+	   comment or our custom mtime indicator. */
 
 	size_t p_word, p_arg;
 
@@ -594,7 +595,40 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		return -1;
 	    }
 
-	    if (strncmp(line+p_word, "mtime", p - p_word) == 0)
+	    if (strncmp(line+p_word, "option", p - p_word) == 0)
+	    {
+		/* read persistent option following */
+
+		while (isspace(line[p])) ++p;
+
+		p_arg = p;
+		while (line[p] != 0 && line[p] != '=') ++p;
+
+		if (strncmp(line+p_arg, "--exclude-marker", p - p_arg) == 0 && line[p] == '=')
+		{
+		    ++p; /* skip over '=' */
+
+		    p_arg = p;
+		    while (line[p] != 0) ++p;
+
+		    if (gopt_exclude_marker) free((void*)gopt_exclude_marker);
+
+		    gopt_exclude_marker = strndup(line+p_arg, p - p_arg);
+
+		    if (gopt_verbose >= 2) {
+			fprintf(stderr, "%s: \"%s\" line %d: persistent option --exclude-marker=%s\n",
+				g_progname, gopt_digestfile, linenum, gopt_exclude_marker);
+		    }
+		}
+		else
+		{
+		    fprintf(stderr, "%s: \"%s\" line %d: unknown persistent option line.\n",
+			    g_progname, gopt_digestfile, linenum);
+
+		    return -1;
+		}
+	    }
+	    else if (strncmp(line+p_word, "mtime", p - p_word) == 0)
 	    {
 		/* read number following mtime */
 
@@ -1650,6 +1684,8 @@ bool scan_directory(const char* path, const struct stat* st)
     unsigned int filenamepos = 0;
     unsigned int filenamemax = 0;
 
+    bool exclude_marker_found = FALSE;
+
     if (!dirstack_push(st))
     {
 	fprintf(stderr, "%s: filesystem loop detected at \"%s\".\n",
@@ -1680,9 +1716,27 @@ bool scan_directory(const char* path, const struct stat* st)
 	}
 
 	filenames[filenamepos++] = strdup( de->d_name );
+
+	if (gopt_exclude_marker)
+	{
+	    if (strcmp(de->d_name, gopt_exclude_marker) == 0)
+		exclude_marker_found = TRUE;
+	}
     }
 
     closedir(dirp);
+
+    if (exclude_marker_found)
+    {
+	if (gopt_verbose >= 2) {
+	    fprintf(stderr, "%s: exclude marker found in \"%s\": skipping.\n",
+		    g_progname, path);
+	}
+
+	free(filenames);
+	dirstack_pop(st);
+	return TRUE;
+    }
 
     qsort(filenames, filenamepos, sizeof(char*), strcmpptr);
 
@@ -2091,6 +2145,7 @@ bool cmd_write(void)
 	return TRUE;
     }
 
+    /* add a small note current date at the beginning */
     {
 	time_t tnow = time(NULL);
 	char datenow[32];
@@ -2098,6 +2153,14 @@ bool cmd_write(void)
 
 	fprintfcrc(&crc, sumfile, "# %s last update: %s\n", g_progname, datenow);
     }
+
+    /* add persisent options to digest file */
+
+    if (gopt_exclude_marker) {
+	fprintfcrc(&crc, sumfile, "#: option --exclude-marker=%s\n", gopt_exclude_marker);
+    }
+
+    /* list files with properties and digests */
 
     for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
     {
@@ -2197,9 +2260,11 @@ void print_usage(void)
     printf("  -b, --batch           enable non-interactive batch processing mode.\n");
     printf("  -c, --check           perform full digest check ignoring modification times.\n");
     printf("  -d, --directory=PATH  change into this directory before any operations.\n");
+    printf("      --exclude-marker=FILE  skip all directories contain this marker file.\n");
     printf("  -f, --file=FILE       check FILE for existing digests and writing updates.\n");
     printf("  -l, --links           follow symlinks instead of saving their destination.\n");
     printf("  -m, --modified        suppressing printing of unchanged files.\n");
+    printf("      --modify-window=NUM  allow higher delta window for modification times.\n");
     printf("  -q, --quiet           reduce status printing while scanning.\n");
     printf("  -t, --type=TYPE       select digest type for newly created digest files.\n");
     printf("                          TYPE = md5, sha1, sha256 or sha512.\n");
@@ -2233,6 +2298,7 @@ int main(int argc, char* argv[])
 		{ "update",     no_argument,       0, 'u' },
 		{ "verbose",    no_argument,       0, 'v' },
 		{ "modify-window", required_argument, 0, 1 },
+		{ "exclude-marker", required_argument, 0, 2 },
 		{ NULL,	    	0,                 0, 0 }
 	    };
 
@@ -2257,6 +2323,10 @@ int main(int argc, char* argv[])
 	    }
 	    break;
 	}
+
+	case 2:
+	    gopt_exclude_marker = strdup(optarg);
+	    break;
 
 	case 'b':
 	    gopt_batch = TRUE;
@@ -2469,6 +2539,8 @@ int main(int argc, char* argv[])
     rb_destroy(g_filedigestmap);
 
     if (dirstack) free(dirstack);
+
+    if (gopt_exclude_marker) free((void*)gopt_exclude_marker);
 
     return retcode;
 }
