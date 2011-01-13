@@ -2680,6 +2680,9 @@ case "$host_os" in
 
 $as_echo "#define ON_WIN32 1" >>confdefs.h
 
+
+$as_echo "#define __MSVCRT_VERSION__ 0x0601" >>confdefs.h
+ # needed for _stat64
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
         ;;

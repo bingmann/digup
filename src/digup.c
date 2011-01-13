@@ -204,6 +204,28 @@ static int asprintf(char **strp, const char *fmt, ...)
 }
 #endif
 
+/* select correct struct stat and functions for 64-bit file sizes in mingw */
+#if ON_WIN32
+
+typedef struct __stat64	mystatst;
+
+#define mystat		_stat64
+#define mylstat		_stat64
+
+#else /* for sane systems */
+
+typedef struct stat	mystatst;
+
+#define mystat 		stat
+
+#if !HAVE_LSTAT
+#define mylstat 	stat
+#else
+#define mylstat 	lstat
+#endif
+
+#endif
+
 /* not so simple getline() replacement from xine-ui code. */
 #if !HAVE_GETLINE
 
@@ -1222,7 +1244,7 @@ bool read_digestfile(void)
  * Functions to recursively scan directores and process file *
  *************************************************************/
 
-bool process_file(const char* filepath, const struct stat* st)
+bool process_file(const char* filepath, const mystatst* st)
 {
     struct rb_node* fileiter;
 
@@ -1453,7 +1475,7 @@ bool process_file(const char* filepath, const struct stat* st)
     }
 }
 
-bool process_symlink(const char* filepath, const struct stat* st)
+bool process_symlink(const char* filepath, const mystatst* st)
 {
     struct rb_node* fileiter;
 
@@ -1646,7 +1668,7 @@ struct DirLevel* dirstack = NULL;
 size_t dirstackmax = 0;
 size_t dirstacklen = 0;
 
-bool dirstack_push(const struct stat* st)
+bool dirstack_push(const mystatst* st)
 {
 #if !ON_WIN32 /* win32 under mingw has no inode numbers. */
 
@@ -1681,7 +1703,7 @@ bool dirstack_push(const struct stat* st)
     return TRUE;
 }
 
-void dirstack_pop(const struct stat* st)
+void dirstack_pop(const mystatst* st)
 {
     assert( dirstacklen > 0 );
 
@@ -1693,7 +1715,7 @@ void dirstack_pop(const struct stat* st)
 	--dirstacklen;
 }
 
-bool scan_directory(const char* path, const struct stat* st)
+bool scan_directory(const char* path, const mystatst* st)
 {
     DIR* dirp;
 
@@ -1760,7 +1782,7 @@ bool scan_directory(const char* path, const struct stat* st)
     qsort(filenames, filenamepos, sizeof(char*), strcmpptr);
 
     {
-	struct stat st;
+	mystatst st;
 	unsigned int fi;
 
 	for (fi = 0; fi < filenamepos; ++fi)
@@ -1770,10 +1792,6 @@ bool scan_directory(const char* path, const struct stat* st)
 
 	    free(filenames[fi]);
 
-#if !HAVE_LSTAT
-#define lstat stat
-#endif
-
 #ifndef S_ISSOCK
 #define S_ISSOCK(x) 0
 #endif
@@ -1781,7 +1799,7 @@ bool scan_directory(const char* path, const struct stat* st)
 #define S_ISLNK(x) 0
 #endif
 
-	    if (lstat(filepath, &st) != 0)
+	    if (mylstat(filepath, &st) != 0)
 	    {
 		fprintf(stderr, "%s: could not stat file \"%s\": %s\n",
 			g_progname, filepath, strerror(errno));
@@ -1794,7 +1812,7 @@ bool scan_directory(const char* path, const struct stat* st)
 		}
 		else
 		{
-		    if (stat(filepath, &st) != 0)
+		    if (mystat(filepath, &st) != 0)
 		    {
 			fprintf(stderr, "%s: could not stat symlink \"%s\": %s\n",
 				g_progname, filepath, strerror(errno));
@@ -1870,9 +1888,9 @@ bool scan_directory(const char* path, const struct stat* st)
 
 bool start_scan(const char* path)
 {
-    struct stat st;
+    mystatst st;
 
-    if (lstat(path, &st) != 0)
+    if (mylstat(path, &st) != 0)
     {
 	fprintf(stderr, "%s: could not stat path \"%s\": %s\n",
 		g_progname, path, strerror(errno));
@@ -2194,11 +2212,21 @@ bool cmd_write(void)
 
 	if (fileinfo->symlink)
 	{
+#if ON_WIN32 /* mingw uses msvcrt which uses %I64d or %I64u for long long formatting. */
+
+	    if (needescape_filename(&fileinfo->symlink)) /* may replace the symlink string */
+		fprintfcrc(&crc, sumfile, "#: mtime %ld size %I64d target\\ %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
+	    else
+		fprintfcrc(&crc, sumfile, "#: mtime %ld size %I64d target %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
+
+#else
+
 	    if (needescape_filename(&fileinfo->symlink)) /* may replace the symlink string */
 		fprintfcrc(&crc, sumfile, "#: mtime %ld size %lld target\\ %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
 	    else
 		fprintfcrc(&crc, sumfile, "#: mtime %ld size %lld target %s\n", fileinfo->mtime, fileinfo->size, fileinfo->symlink);
 
+#endif
 	    if (needescape_filename(&filename)) /* may replace the filename string */
 		fprintfcrc(&crc, sumfile, "#: symlink\\ %s\n", filename);
 	    else
@@ -2206,8 +2234,15 @@ bool cmd_write(void)
 	}
 	else
 	{
+#if ON_WIN32 /* mingw uses msvcrt which uses %I64d or %I64u for long long formatting. */
+
+	    fprintfcrc(&crc, sumfile, "#: mtime %ld size %I64d\n", fileinfo->mtime, fileinfo->size);
+
+#else
+
 	    fprintfcrc(&crc, sumfile, "#: mtime %ld size %lld\n", fileinfo->mtime, fileinfo->size);
 
+#endif
 	    if (needescape_filename(&filename)) /* may replace the filename string */
 		fprintfcrc(&crc, sumfile, "\\");
 

@@ -17,6 +17,7 @@ case "$host_os" in
     *cygwin* | *mingw32*)
         ON_WIN32=1
 	AC_DEFINE(ON_WIN32, 1, "")
+	AC_DEFINE(__MSVCRT_VERSION__, 0x0601, "") # needed for _stat64
         AC_MSG_RESULT(yes)
         ;;
     *)
