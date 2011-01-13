@@ -26,6 +26,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <assert.h>
 
@@ -105,19 +106,20 @@ void integer_free(void *a)
 
 int integer_cmp(const void *a, const void *b)
 {
-    if ((int)a < (int)b) return -1;
-    if ((int)a > (int)b) return +1;
+    if ((intptr_t)a < (intptr_t)b) return -1;
+    if ((intptr_t)a > (intptr_t)b) return +1;
     return 0;
 }
 
 void integer_print(const void *a)
 {
-    printf("%d", (int)a);
+    printf("%d", (int)(intptr_t)a);
 }
 
 void test_integers(void)
 {
-    int i, val;
+    int i;
+    intptr_t val;
     struct rb_node *node;
 
     struct rb_tree *tree = rb_create(integer_cmp,
@@ -170,7 +172,8 @@ void test_integers(void)
 
 void test_integers_multi(int factor)
 {
-    int i, val;
+    int i;
+    intptr_t val;
     unsigned int count;
     struct rb_node *node;
 
@@ -191,11 +194,12 @@ void test_integers_multi(int factor)
 
     for (i = 0; i < factor; i++)
     {
-	node = rb_find(tree, (void*)i);
+	val = i;
+	node = rb_find(tree, (void*)val);
 	assert(node);
 
 	count = 0;
-	while (node != rb_end(tree) && (int)node->key == i)
+	while (node != rb_end(tree) && (intptr_t)node->key == i)
 	{
 	    ++count;
 	    node = rb_successor(tree, node);
@@ -210,7 +214,7 @@ void test_integers_multi(int factor)
 	for(node = rb_begin(tree); node != rb_end(tree);
 	    node = rb_successor(tree, node))
 	{
-	    assert((unsigned int)node->key == (count++ / 100));
+	    assert((intptr_t)node->key == (count++ / 100));
 	}
     }
 
