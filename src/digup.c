@@ -428,12 +428,14 @@ bool needescape_filename(char** str)
  * outerror is filled with an error message string.
  */
 bool digest_file2(const char* filepath,
+		  long long filesize,
 		  digest_ctx* digctx,
 		  digest_result** outdigest,
 		  char** outerror)
 {
     char buffer[1024*1024];
-    ssize_t rb, totalread = 0;
+    ssize_t rb;
+    long long totalread = 0;
 
 #if ON_WIN32
     int openflags = O_RDONLY | O_BINARY;
@@ -504,6 +506,23 @@ bool digest_file2(const char* filepath,
 
     close(fd);
 
+    if (totalread != filesize)
+    {
+	if (gopt_verbose >= 2) {
+	    fprintf(stdout, "ERROR. Could not read complete file.\n");
+	}
+	else if (gopt_verbose >= 1) {
+	    fprintf(stdout, "%s ERROR. Could not read complete file.\n",
+		    filepath);
+	}
+	else if (gopt_verbose >= 0) {
+	    fprintf(stderr, "%s: Could not read complete file \"%s\".\n",
+		    g_progname, filepath);
+	}
+	asprintf(outerror, "Could not read complete file.");
+	return FALSE;
+    }
+
     assert(!*outdigest);
     *outdigest = digctx->finish(digctx);
 
@@ -515,7 +534,7 @@ bool digest_file2(const char* filepath,
  * as a malloc()ed hex string in outdigest, or returns FALSE if there
  * was a read error.
  */
-bool digest_file(const char* filepath, digest_result** outdigest, char** outerror)
+bool digest_file(const char* filepath, long long filesize, digest_result** outdigest, char** outerror)
 {
     digest_ctx digctx;
 
@@ -543,7 +562,7 @@ bool digest_file(const char* filepath, digest_result** outdigest, char** outerro
 	return FALSE;
     }
 
-    return digest_file2(filepath, &digctx, outdigest, outerror);
+    return digest_file2(filepath, filesize, &digctx, outdigest, outerror);
 }
 
 /************************************
@@ -1268,7 +1287,7 @@ bool process_file(const char* filepath, const struct stat* st)
 
 	/* calculate file digest */
 
-	if (!digest_file(filepath, &filedigest, &fileinfo->error))
+	if (!digest_file(filepath, st->st_size, &filedigest, &fileinfo->error))
 	{
 	    fileinfo->status = FS_ERROR;
 	    fileinfo->mtime = st->st_mtime;
@@ -1328,7 +1347,7 @@ bool process_file(const char* filepath, const struct stat* st)
 	fileinfo->mtime = st->st_mtime;
 	fileinfo->size = st->st_size;
 
-	if (!digest_file(filepath, &fileinfo->digest, &fileinfo->error))
+	if (!digest_file(filepath, st->st_size, &fileinfo->digest, &fileinfo->error))
 	{
 	    fileinfo->status = FS_ERROR;
 
@@ -2148,7 +2167,7 @@ bool cmd_write(void)
     /* add a small note current date at the beginning */
     {
 	time_t tnow = time(NULL);
-	char datenow[32];
+	char datenow[64];
 	strftime(datenow, sizeof(datenow), "%Y-%m-%d %H:%M:%S %Z", localtime(&tnow));
 
 	fprintfcrc(&crc, sumfile, "# %s last update: %s\n", g_progname, datenow);
