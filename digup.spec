@@ -3,7 +3,7 @@
 
 Summary: Tool to read, verify and update MD5 or SHA digest files
 Name: digup
-Version: 0.6
+Version: 0.6.40
 Release: 1%{?dist}
 Group: Applications/System
 License: GPL
