@@ -1247,6 +1247,7 @@ bool read_digestfile(void)
 bool process_file(const char* filepath, const mystatst* st)
 {
     struct rb_node* fileiter;
+    struct rb_node* digestiter;
 
     if (filepath[0] == '.' && filepath[1] == '/')
 	filepath += 2;
@@ -1360,8 +1361,6 @@ bool process_file(const char* filepath, const mystatst* st)
     }
     else
     {
-	struct rb_node* node;
-
 	struct FileInfo* fileinfo = malloc(sizeof(struct FileInfo));
 	memset(fileinfo, 0, sizeof(struct FileInfo));
 
@@ -1381,11 +1380,11 @@ bool process_file(const char* filepath, const mystatst* st)
 	}
 
 	/* look for existing file with equal digest */
-	node = rb_find(g_filedigestmap, fileinfo->digest);
-	if (node != NULL)
+	digestiter = rb_find(g_filedigestmap, fileinfo->digest);
+	if (digestiter != NULL)
 	{
 	    bool copied = FALSE;
-	    struct rb_node* nodecopy = node;
+	    struct rb_node* nodecopy = digestiter;
 
 	    /* test if the oldfile still exists. */
 	    while (nodecopy != rb_end(g_filedigestmap) &&
@@ -1394,7 +1393,7 @@ bool process_file(const char* filepath, const mystatst* st)
 		if (access((char*)nodecopy->value, F_OK) == 0)
 		{
 		    copied = TRUE;
-		    node = nodecopy;
+		    digestiter = nodecopy;
 		}
 		else
 		{
@@ -1448,10 +1447,10 @@ bool process_file(const char* filepath, const mystatst* st)
 	    }
 
 	    if (gopt_verbose >= 1) {
-		fprintf(stdout, "<-- %s", (char*)node->value);
+		fprintf(stdout, "<-- %s", (char*)digestiter->value);
 	    }
 
-	    fileinfo->oldpath = strdup((char*)node->value);
+	    fileinfo->oldpath = strdup((char*)digestiter->value);
 	}
 
 	rb_insert(g_filelist, strdup(filepath), fileinfo);
