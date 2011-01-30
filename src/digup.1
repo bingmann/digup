@@ -53,6 +53,9 @@ Consider modification time deltas of up to this value to be unchanged (the defau
 \fB\-q\fR, \fB\-\-quiet\fR
 Reduces the level of verbosity by one.
 .TP
+\fB\-r\fR, \fB\-\-restrict\fR=\fI<substring>\fR
+Restricts the digest check to filepaths containing the given substring pattern, other files are skipped. Does NOT imply -c / --check; specify it additionally to run a full digest check of specific files.
+.TP
 \fB\-t\fR, \fB\-\-type\fR=\fI<digest-type>\fR
 Select the digest type for newly created digest files. This is not needed for updating existing one, as the type can inferred from the digest length.
 

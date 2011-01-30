@@ -56,7 +56,8 @@ enum FileStatus
     FS_ERROR,   /* error while reading file. */
     FS_COPIED,  /* copied within tree. */
     FS_RENAMED, /* renamed within tree. */
-    FS_OLDPATH  /* original entry of a renamed file */
+    FS_OLDPATH, /* original entry of a renamed file */
+    FS_SKIPPED  /* skipped due to --restrict */
 };
 
 struct FileInfo
@@ -88,6 +89,7 @@ char* gopt_digestfile = NULL;
 enum DigestType gopt_digesttype = DT_NONE;
 unsigned int gopt_modify_window = 0;
 const char* gopt_exclude_marker = NULL;
+const char* gopt_matchpattern = NULL;
 
 /* red-black tree mapping filename string -> struct FileInfo */
 
@@ -107,6 +109,7 @@ unsigned int g_filelist_error = 0;
 unsigned int g_filelist_copied = 0;
 unsigned int g_filelist_renamed = 0;
 unsigned int g_filelist_oldpath = 0;
+unsigned int g_filelist_skipped = 0;
 
 /**********************************
  * Helper Functions and Utilities *
@@ -1223,15 +1226,24 @@ bool read_digestfile(void)
     else
     {
 	/* Insert all file digests into the map for fast lookup. */
+	/* Simulanteously mark files as skipped that don't match --restrict */
 
 	struct rb_node* node;
 
 	for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
 	{
-	    const struct FileInfo* fileinfo = node->value;
-	    if (!fileinfo->digest) continue;
+	    struct FileInfo* fileinfo = node->value;
 
-	    rb_insert(g_filedigestmap, digest_dup(fileinfo->digest), node->key);
+	    if (gopt_matchpattern && strstr(node->key, gopt_matchpattern) == NULL)
+	    {
+		fileinfo->status = FS_SKIPPED;
+		++g_filelist_skipped;
+	    }
+
+	    if (fileinfo->digest)
+	    {
+		rb_insert(g_filedigestmap, digest_dup(fileinfo->digest), node->key);
+	    }
 	}
     }
 
@@ -1254,6 +1266,10 @@ bool process_file(const char* filepath, const mystatst* st)
 
     /* skip over the digestfile */
     if (strcmp(filepath, gopt_digestfile) == 0)
+	return TRUE;
+
+    /* silently skip over ignored filepaths */
+    if (gopt_matchpattern && strstr(filepath, gopt_matchpattern) == NULL)
 	return TRUE;
 
     if (gopt_verbose >= 2) {
@@ -1483,6 +1499,10 @@ bool process_symlink(const char* filepath, const mystatst* st)
 
     /* skip over the digestfile */
     if (strcmp(filepath, gopt_digestfile) == 0)
+	return TRUE;
+
+    /* silently skip over ignored filepaths */
+    if (gopt_matchpattern && strstr(filepath, gopt_matchpattern) == NULL)
 	return TRUE;
 
     if (gopt_verbose >= 2) {
@@ -1922,7 +1942,7 @@ struct CommandEntry
     const char*	help;
 };
 
-static struct CommandEntry cmdlist[15];
+static struct CommandEntry cmdlist[16];
 
 bool filelist_clean(void)
 {
@@ -1931,7 +1951,7 @@ bool filelist_clean(void)
 
 unsigned int filelist_deleted(void)
 {
-    return rb_size(g_filelist) - (g_filelist_new + g_filelist_seen + g_filelist_touched + g_filelist_changed + g_filelist_error + g_filelist_renamed + g_filelist_copied + g_filelist_oldpath);
+    return rb_size(g_filelist) - (g_filelist_new + g_filelist_seen + g_filelist_touched + g_filelist_changed + g_filelist_error + g_filelist_renamed + g_filelist_copied + g_filelist_oldpath + g_filelist_skipped);
 }
 
 void print_summary(void)
@@ -1958,6 +1978,9 @@ void print_summary(void)
 
     if (g_filelist_copied)
 	fprintf(stdout, "     Copied: %d\n", g_filelist_copied);
+
+    if (g_filelist_skipped)
+	fprintf(stdout, "    Skipped: %d\n", g_filelist_skipped);
 
     if (filelist_deleted())
 	fprintf(stdout, "    Deleted: %d\n", filelist_deleted());
@@ -2165,6 +2188,29 @@ bool cmd_renamed(void)
     return TRUE;
 }
 
+bool cmd_skipped(void)
+{
+    struct rb_node* node;
+    unsigned int count = 0;
+
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    {
+	const struct FileInfo* fileinfo = node->value;
+
+	if (fileinfo->status != FS_SKIPPED) continue;
+
+	fprintf(stdout, "%s SKIPPED.\n", (char*)node->key);
+	++count;
+    }
+
+    if (count == 0) {
+	fprintf(stdout, "%s: no files skipped during scan.\n",
+		g_progname);
+    }
+
+    return TRUE;
+}
+
 bool cmd_write(void)
 {
     FILE *sumfile = fopen(gopt_digestfile, "wb");
@@ -2268,7 +2314,7 @@ bool cmd_quit(void)
     return FALSE;
 }
 
-static struct CommandEntry cmdlist[15] =
+static struct CommandEntry cmdlist[16] =
 {
     { "help",		&cmd_help,	"See this help text." },
     { "new",		&cmd_new,	"Print newly seen files not in digest file." },
@@ -2280,6 +2326,7 @@ static struct CommandEntry cmdlist[15] =
     { "renamed",	&cmd_renamed,	"Print files renamed from a different path." },
     { "deleted",	&cmd_deleted,	"Print deleted files." },
     { "error",		&cmd_error,	"Print files with read errors." },
+    { "skipped",	&cmd_skipped,	"Print files skipped during scan." },
     { "save",		&cmd_write,	"Write updates to digest file and exit program." },
     { "write",		&cmd_write,	NULL },
     { "exit",		&cmd_quit,	"Exit program without saving updates." },
@@ -2319,6 +2366,7 @@ void print_usage(void)
     printf("  -m, --modified        suppressing printing of unchanged files.\n");
     printf("      --modify-window=NUM  allow higher delta window for modification times.\n");
     printf("  -q, --quiet           reduce status printing while scanning.\n");
+    printf("  -r, --restrict=PAT    run full digest check restricted to files matching PAT.\n");
     printf("  -t, --type=TYPE       select digest type for newly created digest files.\n");
     printf("                          TYPE = md5, sha1, sha256 or sha512.\n");
     printf("  -u, --update          automatically update digest file in batch mode.\n");
@@ -2348,6 +2396,7 @@ int main(int argc, char* argv[])
 		{ "links",      no_argument,       0, 'l' },
 		{ "modified",  	no_argument,       0, 'm' },
 		{ "quiet",      no_argument,       0, 'q' },
+		{ "restrict",   required_argument, 0, 'r' },
 		{ "type",   	required_argument, 0, 't' },
 		{ "update",     no_argument,       0, 'u' },
 		{ "verbose",    no_argument,       0, 'v' },
@@ -2360,7 +2409,7 @@ int main(int argc, char* argv[])
 	/* getgopt_long stores the option index here. */
 	int option_index = 0;
 
-	int c = getopt_long(argc, argv, "bcd:f:hlmqt:uv",
+	int c = getopt_long(argc, argv, "bcd:f:hlmqr:t:uvw",
 			    long_options, &option_index);
 
      	if (c == -1) break;
@@ -2419,6 +2468,11 @@ int main(int argc, char* argv[])
 
 	case 'q':
 	    --gopt_verbose;
+	    break;
+
+	case 'r':
+	    gopt_matchpattern = optarg;
+	    fprintf(stdout, "Checking only paths matching: \"%s\".\n", gopt_matchpattern);
 	    break;
 
 	case 't':

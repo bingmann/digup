@@ -1,3 +1,8 @@
+2011-01-30 19:05  Timo Bingmann
+
+	* src/digup.c: Adding shortcut option -w, --windows for --modify-window=1 as needed to check files on FAT filesystems.
+	* src/digup.c: New feature: --restrict=substring to temporarily ignore all files not matching the substring. Required a new fileinfo state FS_SKIPPED and appropriate commands.
+
 2011-01-13 17:11  Timo Bingmann
 
 	* src/digup.c: Fixing problems with 64-bit file sizes on win32 under (mingw32): using _stat64 on mingw now.
