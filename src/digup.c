@@ -2323,6 +2323,7 @@ void print_usage(void)
     printf("                          TYPE = md5, sha1, sha256 or sha512.\n");
     printf("  -u, --update          automatically update digest file in batch mode.\n");
     printf("  -v, --verbose         increase status printing during scanning.\n");
+    printf("  -w, --windows         allow a --modify-window of 1 (for FAT filesystems).\n");
     printf("\n");
 
     printf("See \"man 1 digup\" for further explanations. This is digup " VERSION "\n");
@@ -2350,6 +2351,7 @@ int main(int argc, char* argv[])
 		{ "type",   	required_argument, 0, 't' },
 		{ "update",     no_argument,       0, 'u' },
 		{ "verbose",    no_argument,       0, 'v' },
+		{ "windows",    no_argument,       0, 'w' },
 		{ "modify-window", required_argument, 0, 1 },
 		{ "exclude-marker", required_argument, 0, 2 },
 		{ NULL,	    	0,                 0, 0 }
@@ -2469,6 +2471,10 @@ int main(int argc, char* argv[])
 
 	case 'v':
 	    ++gopt_verbose;
+	    break;
+
+	case 'w':
+	    gopt_modify_window = 1;
 	    break;
 
 	case '?':

@@ -1,3 +1,27 @@
+2011-01-13 17:11  Timo Bingmann
+
+	* src/digup.c: Fixing problems with 64-bit file sizes on win32 under (mingw32): using _stat64 on mingw now.
+	* src/digup.c: Simple variable rename node -> digestiter for clarity.
+
+2011-01-13 17:04  Timo Bingmann
+
+	* src/digup.c: Adding check in digest_file to verify that the
+	complete file was read.
+
+2011-01-13 17:01  Timo Bingmann
+
+	* src/digup.c: Using intptr_t in rbtree tests to fix warnings
+	about pointer conversion on 64-bit systems.
+
+2010-11-29 18:05  Timo Bingmann
+
+	* src/digup.c: Adding new flags --modify-window inspired by rsync:
+	allow modification time deltas larger than zero e.g. for backuping
+	on FAT filesystems.
+	* src/digup.c: Adding new option --exclude-marker=file. If file is
+	found in a directory during the recursive scan, the directory
+	itself and all subdirectories are skipped.
+
 2010-10-03 11:28  Timo Bingmann
 
 	* src/digup.c: Applying contributed patch which fixes segfault on

@@ -69,6 +69,9 @@ At level 0 only read errors are printed.
 At level 1 the status of each processed file is printed.
 
 And at level 2 (the default) additionally a progress indicator is printed while reading each file (one dot per megabyte).
+.TP
+\fB\-w\fR, \fB\-\-windows\fR
+Ignores modification time deltas of just 1 second (equivalent to --modify-window=1). Useful for checking backups on FAT filesystems.
 .SH "EXAMPLES"
 .TP
 To update or create a SHA1 digest file in current directory just run plain
