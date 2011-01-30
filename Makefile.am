@@ -19,3 +19,5 @@ clean-gcov:
 	find -name "*.gcda" | xargs rm || true
 
 endif
+
+EXTRA_DIST = digup.spec

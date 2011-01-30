@@ -113,5 +113,6 @@ AC_CHECK_HEADER(sys/param.h, [AC_DEFINE(HAVE_SYS_PARAM_H, 1, "")], [AC_DEFINE(HA
 # Output transformed files.
 
 AC_CONFIG_FILES([Makefile
-		 src/Makefile])
+		 src/Makefile
+		 digup.spec])
 AC_OUTPUT
