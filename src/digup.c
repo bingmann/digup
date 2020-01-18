@@ -1,7 +1,7 @@
 /*****************************************************************************
  * digup.c - Digest File Updating Program                                    *
  *                                                                           *
- * Copyright (C) 2010 Timo Bingmann                                          *
+ * Copyright (C) 2010-2020 Timo Bingmann                                     *
  *                                                                           *
  * This program is free software; you can redistribute it and/or modify it   *
  * under the terms of the GNU General Public License as published by the     *
@@ -559,7 +559,8 @@ bool digest_file2(const char* filepath,
  * as a malloc()ed hex string in outdigest, or returns FALSE if there
  * was a read error.
  */
-bool digest_file(const char* filepath, long long filesize, digest_result** outdigest, char** outerror)
+bool digest_file(const char* filepath, long long filesize,
+                 digest_result** outdigest, char** outerror)
 {
     digest_ctx digctx;
 
@@ -600,7 +601,8 @@ bool digest_file(const char* filepath, long long filesize, digest_result** outdi
  * for a correct digest or symlink line, +1 for a comment line
  * providing additional file info and -2 for and eof flagged line.
  */
-int parse_digestline(const char* line, const unsigned int linenum, struct FileInfo* tempinfo, uint32_t crc)
+int parse_digestline(const char* line, const unsigned int linenum,
+                     struct FileInfo* tempinfo, uint32_t crc)
 {
     /*** parse line from digest file ***/
     size_t p = 0;
@@ -648,7 +650,8 @@ int parse_digestline(const char* line, const unsigned int linenum, struct FileIn
 		p_arg = p;
 		while (line[p] != 0 && line[p] != '=') ++p;
 
-		if (strncmp(line+p_arg, "--exclude-marker", p - p_arg) == 0 && line[p] == '=')
+		if (strncmp(line+p_arg, "--exclude-marker", p - p_arg) == 0 &&
+                    line[p] == '=')
 		{
 		    ++p; /* skip over '=' */
 
@@ -2055,7 +2058,8 @@ bool cmd_touched(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2078,7 +2082,8 @@ bool cmd_changed(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2101,7 +2106,8 @@ bool cmd_deleted(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2124,7 +2130,8 @@ bool cmd_error(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2147,7 +2154,8 @@ bool cmd_copied(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2170,7 +2178,8 @@ bool cmd_renamed(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2193,7 +2202,8 @@ bool cmd_skipped(void)
     struct rb_node* node;
     unsigned int count = 0;
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	const struct FileInfo* fileinfo = node->value;
 
@@ -2244,7 +2254,8 @@ bool cmd_write(void)
 
     /* list files with properties and digests */
 
-    for (node = rb_begin(g_filelist); node != rb_end(g_filelist); node = rb_successor(g_filelist, node))
+    for (node = rb_begin(g_filelist); node != rb_end(g_filelist);
+         node = rb_successor(g_filelist, node))
     {
 	struct FileInfo* fileinfo = node->value;
 	char* filename;
