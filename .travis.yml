@@ -2,6 +2,6 @@ language: cpp
 
 script:
   - mkdir build; cd build
-  - ../configure
+  - ../configure --enable-optimize
   - make
-  - make test
+  - make check
