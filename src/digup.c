@@ -920,14 +920,14 @@ int parse_digestline(const char* line, const unsigned int linenum,
 		    }
 		    else
 		    {
-			char input[256];
+			char input[256], *r;
 
 			fprintf(stderr, "This indicates an unintentional or intentional modification of the digest file.\n");
 			fprintf(stderr, "Continue despite change (y/n)? ");
 
-			fgets(input, sizeof(input), stdin);
+			r = fgets(input, sizeof(input), stdin);
 
-			if (input[0] != 'y')
+			if (r == NULL || input[0] != 'y')
 			{
 			    exit(-1);
 			}
