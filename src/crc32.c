@@ -1,40 +1,30 @@
 /*****************************************************************************
  * Compute the CRC-32 of a data stream.                                      *
  *                                                                           *
- * Copyright (C) 1995-2005 Mark Adler <madler@alumni.caltech.edu>            *
+ * Copyright (C) 2009 Timo Bingmann                                          *
  *                                                                           *
- * This file was taken from zlib-1.2.3 and adapted for digup.                *
+ * Uses the standard slice-by-byte algorithm with a pre-generated 8-bit      *
+ * lookup table described by Dilip V. Sarwate, according to                  *
+ * https://create.stephan-brumme.com/crc32/                                  *
  *                                                                           *
- * This software is provided 'as-is', without any express or implied         *
- * warranty.  In no event will the authors be held liable for any damages    *
- * arising from the use of this software.                                    *
+ * This program is free software; you can redistribute it and/or modify it   *
+ * under the terms of the GNU General Public License as published by the     *
+ * Free Software Foundation; either version 3, or (at your option) any       *
+ * later version.                                                            *
  *                                                                           *
- * Permission is granted to anyone to use this software for any purpose,     *
- * including commercial applications, and to alter it and redistribute it    *
- * freely, subject to the following restrictions:                            *
+ * This program is distributed in the hope that it will be useful,           *
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of            *
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the             *
+ * GNU General Public License for more details.                              *
  *                                                                           *
- * 1. The origin of this software must not be misrepresented; you must not   *
- *    claim that you wrote the original software. If you use this software   *
- *    in a product, an acknowledgment in the product documentation would be  *
- *    appreciated but is not required.                                       *
- * 2. Altered source versions must be plainly marked as such, and must not   *
- *    be misrepresented as being the original software.                      *
- * 3. This notice may not be removed or altered from any source              *
- *    distribution.                                                          *
- *                                                                           *
- * Large parts were removed from the original crc32.c from zlib and only     *
- * the functions essential to digup were left.        -- 2009, Timo Bingmann *
- *                                                                           *
- *                                                                           *
+ * You should have received a copy of the GNU General Public License         *
+ * along with this program; if not, write to the Free Software Foundation,   *
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.        *
  *****************************************************************************/
 
 #include "crc32.h"
 
-/**
- * Table of CRC-32s of all single-byte values, made by make_crc_table().
- */
-
-static const uint32_t crc_table[256] =
+static const uint32_t crc32_table[256] =
 {
     0x00000000UL, 0x77073096UL, 0xee0e612cUL, 0x990951baUL, 0x076dc419UL,
     0x706af48fUL, 0xe963a535UL, 0x9e6495a3UL, 0x0edb8832UL, 0x79dcb8a4UL,
@@ -98,20 +88,20 @@ uint32_t crc32(uint32_t crc, const unsigned char* buf, unsigned int len)
 
     while (len >= 8)
     {
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
         len -= 8;
     }
 
     while (len)
     {
-	crc = crc_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
+	crc = crc32_table[((int)crc ^ (*buf++)) & 0xff] ^ (crc >> 8);
 	--len;
     }
 
