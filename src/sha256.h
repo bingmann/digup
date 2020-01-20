@@ -22,8 +22,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.        *
  *****************************************************************************/
 
-/* $Id$ */
-
 #ifndef _SHA256_H
 #define _SHA256_H 1
 

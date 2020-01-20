@@ -1,4 +1,4 @@
-# $Id$ -*- Autoconf -*-
+# -*- mode: autoconf -*-
 
 AC_PREREQ(2.60)
 AC_INIT(digup, 0.6)

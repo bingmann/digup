@@ -1,4 +1,4 @@
-# $Id$
+# automake file for digup
 
 SUBDIRS = src
 

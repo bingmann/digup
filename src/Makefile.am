@@ -1,4 +1,4 @@
-# $Id$
+# automake file for digup
 
 AM_CFLAGS = -W -Wall -pedantic -Wno-long-long
 

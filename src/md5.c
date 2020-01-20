@@ -23,8 +23,6 @@
  * Written by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1995.                 *
  *****************************************************************************/
 
-/* $Id$ */
-
 #include "md5.h"
 
 #include <stddef.h>

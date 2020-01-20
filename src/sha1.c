@@ -24,8 +24,6 @@
  * Credits: Robert Klep <robert@ilse.nl>  -- Expansion function fix          *
  *****************************************************************************/
 
-/* $Id$ */
-
 #include "sha1.h"
 
 #include <stddef.h>
