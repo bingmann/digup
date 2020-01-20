@@ -1333,7 +1333,7 @@ bool process_file(const char* filepath, const mystatst* st)
 		fprintf(stdout, "check ");
 	    }
 	}
-	else if ((unsigned int)abs(st->st_mtime - fileinfo->mtime) > gopt_modify_window ||
+	else if ((unsigned int)labs(st->st_mtime - fileinfo->mtime) > gopt_modify_window ||
 		 st->st_size != fileinfo->size)
 	{
 	    if (gopt_verbose >= 2) {
