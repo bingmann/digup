@@ -1,5 +1,4 @@
-.\" $Id$
-.TH "digup" "1" "0.6" "Timo Bingmann" "User Commands"
+.TH DIGUP 1 2009-11-10
 .SH "NAME"
 .LP
 digup \- \fBDig\fPest file \fBup\fPdating program.
@@ -22,7 +21,6 @@ The digest files written by digup are compatible with those generated and read b
 
 Four digest algorithms are supported: MD5, SHA1, SHA256 and SHA512. The digest file itself is also checksummed using CRC32 against unintentional changes. A fast red-black binary tree is used for the internal file list, allowing fast operation on a large number of files.
 .SH "OPTIONS"
-.LP
 .TP
 \fB\-b\fR, \fB\-\-batch\fR
 Enable non-interactive batch processing mode as needed when run unattended e.g. from cron. This option also decreases verbosity by one level (--quiet). The returned error code is set to 1 if any changed, renamed, moved, deleted files or read errors occur.
