@@ -305,7 +305,7 @@ struct rb_node *rb_successor(struct rb_tree *tree, struct rb_node *x)
 
     if (nil != (y = x->right)) /* assignment to y is intentional */
     {
-	while (y->left != nil) { /* returns the minium of the right subtree of x */
+	while (y->left != nil) { /* returns the minimum of the right subtree of x */
 	    y = y->left;
 	}
 	return y;
@@ -366,7 +366,7 @@ static void rb_destroy_helper(struct rb_tree *tree, struct rb_node *x)
 }
 
 /**
- * Destory the tree and destroy all associated key and value objects
+ * Destroy the tree and destroy all associated key and value objects
  * via the appropriate callbacks.
  */
 void rb_destroy(struct rb_tree *tree)

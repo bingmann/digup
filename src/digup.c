@@ -1256,7 +1256,7 @@ bool read_digestfile(void)
 }
 
 /*************************************************************
- * Functions to recursively scan directores and process file *
+ * Functions to recursively scan directories and process file *
  *************************************************************/
 
 bool process_file(const char* filepath, const mystatst* st)
@@ -2648,7 +2648,7 @@ int main(int argc, char* argv[])
 	    }
 	    else if (cmd == -2)
 	    {
-		fprintf(stdout, "%s: Ambigious command. See \"help\".\n",
+		fprintf(stdout, "%s: Ambiguous command. See \"help\".\n",
 			g_progname);
 	    }
 	    else

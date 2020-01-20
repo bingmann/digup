@@ -100,7 +100,7 @@ struct rb_node *rb_successor(struct rb_tree *tree, struct rb_node *x);
 struct rb_node *rb_predecessor(struct rb_tree *tree, struct rb_node *x);
 
 /**
- * Destory the tree and destroy all associated key and value objects
+ * Destroy the tree and destroy all associated key and value objects
  * via the appropriate callbacks.
  */
 void rb_destroy(struct rb_tree *tree);
