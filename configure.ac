@@ -5,7 +5,7 @@ AC_INIT(digup, 0.6)
 AC_CONFIG_SRCDIR(src/digup.c)
 AC_CONFIG_AUX_DIR(acscripts)
 
-AM_INIT_AUTOMAKE(foreign)
+AM_INIT_AUTOMAKE
 AM_MAINTAINER_MODE
 
 # Check for mingw system and set compilation flag.

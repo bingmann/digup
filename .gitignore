@@ -1,0 +1,8 @@
+# generated with autotools by autogen.sh
+/Makefile.in
+/aclocal.m4
+/acscripts
+/autom4te.cache
+/configure
+/src/Makefile.in
+/INSTALL

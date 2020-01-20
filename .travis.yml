@@ -1,6 +1,8 @@
+---
 language: cpp
 
 script:
+  - ./autogen.sh
   - mkdir build; cd build
   - ../configure --enable-optimize
   - make
