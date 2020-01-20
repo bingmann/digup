@@ -2418,6 +2418,7 @@ void print_usage(void)
     printf("                          TYPE = md5, sha1, sha256 or sha512.\n");
     printf("  -u, --update          automatically update digest file in batch mode.\n");
     printf("  -v, --verbose         increase status printing during scanning.\n");
+    printf("  -V, --version         print digup version and exit.\n");
     printf("  -w, --windows         allow a --modify-window of 1 (for FAT filesystems).\n");
     printf("\n");
 
@@ -2447,6 +2448,7 @@ int main(int argc, char* argv[])
 		{ "type",   	required_argument, 0, 't' },
 		{ "update",     no_argument,       0, 'u' },
 		{ "verbose",    no_argument,       0, 'v' },
+		{ "version",    no_argument,       0, 'V' },
 		{ "windows",    no_argument,       0, 'w' },
 		{ "modify-window", required_argument, 0, 1 },
 		{ "exclude-marker", required_argument, 0, 2 },
@@ -2456,7 +2458,7 @@ int main(int argc, char* argv[])
 	/* getgopt_long stores the option index here. */
 	int option_index = 0;
 
-	int c = getopt_long(argc, argv, "bcd:f:hlmqr:t:uvw",
+	int c = getopt_long(argc, argv, "bcd:f:hlmqr:t:uvVw",
 			    long_options, &option_index);
 
      	if (c == -1) break;
@@ -2573,6 +2575,10 @@ int main(int argc, char* argv[])
 	case 'v':
 	    ++gopt_verbose;
 	    break;
+
+	case 'V':
+	    printf("digup " VERSION "\n");
+            return 0;
 
 	case 'w':
 	    gopt_modify_window = 1;
