@@ -22,6 +22,10 @@
 
 /* $Id$ */
 
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
 /* evil but simple way to include the main program to run tests on it */
 #define main __mainx
 #include "digup.c"

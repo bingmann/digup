@@ -23,6 +23,9 @@
 #ifndef _DIGEST_H
 #define _DIGEST_H 1
 
+#include <inttypes.h>
+#include <stddef.h>
+
 #include "md5.h"
 #include "sha1.h"
 #include "sha256.h"
