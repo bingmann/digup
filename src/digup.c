@@ -206,6 +206,24 @@ static int asprintf(char **strp, const char *fmt, ...)
 }
 #endif
 
+/* wrapper to abort if out of memory */
+static int my_asprintf(char **strp, const char *fmt, ...)
+{
+    va_list ap;
+    int r;
+
+    va_start(ap, fmt);
+    r = vasprintf(strp, fmt, ap);
+    va_end(ap);
+
+    if (r < 0) {
+        fprintf(stderr, "asprintf(): out of memory\n");
+        exit(EXIT_FAILURE);
+    }
+
+    return r;
+}
+
 /* select correct struct stat and functions for 64-bit file sizes in mingw */
 #if ON_WIN32
 
@@ -500,7 +518,7 @@ bool digest_file2(const char* filepath,
 	    fprintf(stderr, "%s: could not open file \"%s\": %s.\n",
 		    g_progname, filepath, strerror(errno));
 	}
-	asprintf(outerror, "Could not open file: %s.", strerror(errno));
+	my_asprintf(outerror, "Could not open file: %s.", strerror(errno));
 	return FALSE;
     }
 
@@ -530,7 +548,7 @@ bool digest_file2(const char* filepath,
 	    fprintf(stderr, "%s: could not read file \"%s\": %s.\n",
 		    g_progname, filepath, strerror(errno));
 	}
-	asprintf(outerror, "Could not read file: %s.", strerror(errno));
+	my_asprintf(outerror, "Could not read file: %s.", strerror(errno));
 	close(fd);
 	return FALSE;
     }
@@ -550,7 +568,7 @@ bool digest_file2(const char* filepath,
 	    fprintf(stderr, "%s: Could not read complete file \"%s\".\n",
 		    g_progname, filepath);
 	}
-	asprintf(outerror, "Could not read complete file.");
+	my_asprintf(outerror, "Could not read complete file.");
 	return FALSE;
     }
 
@@ -590,7 +608,7 @@ bool digest_file(const char* filepath, long long filesize,
 
     default:
 	assert(0);
-	asprintf(outerror, "Invalid digest algorithm.");
+	my_asprintf(outerror, "Invalid digest algorithm.");
 	return FALSE;
     }
 
@@ -887,7 +905,7 @@ int parse_digestline(const char* line, const unsigned int linenum,
 		    return 0;
 		}
 
-		asprintf(&crchex, "%08x", crc);
+		my_asprintf(&crchex, "%08x", crc);
 		
 		if (strncmp(crchex, line+p_arg, p - p_arg) != 0)
 		{
@@ -1587,7 +1605,8 @@ bool process_symlink(const char* filepath, const mystatst* st)
 			g_progname, filepath, strerror(errno));
 	    }
 
-	    asprintf(&fileinfo->error, "Could not read symlink: %s.", strerror(errno));
+	    my_asprintf(&fileinfo->error, "Could not read symlink: %s.",
+                        strerror(errno));
 
 	    fileinfo->status = FS_ERROR;
 	    fileinfo->mtime = st->st_mtime;
@@ -1659,7 +1678,8 @@ bool process_symlink(const char* filepath, const mystatst* st)
 			g_progname, filepath, strerror(errno));
 	    }
 
-	    asprintf(&fileinfo->error, "Could not read symlink: %s.", strerror(errno));
+	    my_asprintf(&fileinfo->error, "Could not read symlink: %s.",
+                        strerror(errno));
 
 	    fileinfo->status = FS_ERROR;
 
@@ -1826,7 +1846,7 @@ bool scan_directory(const char* path, const mystatst* st)
 	for (fi = 0; fi < filenamepos; ++fi)
 	{
 	    char* filepath;
-	    asprintf(&filepath, "%s/%s", path, filenames[fi]);
+	    my_asprintf(&filepath, "%s/%s", path, filenames[fi]);
 
 	    free(filenames[fi]);
 
