@@ -285,26 +285,30 @@ static ssize_t getline(char **lineptr, size_t *n, FILE *stream)
 char* readlink_dup(const char *filename)
 {
 #if HAVE_READLINK
-
     ssize_t size = 128;
-    char *buffer = NULL;
+    char *buffer = NULL, *tmp;
     int nchars;
 
     while (1)
     {
-	buffer = realloc(buffer, size);
+        tmp = realloc(buffer, size);
+        if (!tmp) {
+            /* out of memory */
+            free(buffer);
+            return NULL;
+        }
+        buffer = tmp;
 	nchars = readlink(filename, buffer, size);
 	if (nchars < 0) {
-	    free (buffer);
+	    free(buffer);
 	    return NULL;
 	}
-	if (nchars+1 < size) {
+	if (nchars + 1 < size) {
 	    buffer[nchars] = 0;
 	    return buffer;
 	}
 	size *= 2;
     }
-
 #else
     (void)filename;
     errno = EINVAL;
@@ -322,6 +326,7 @@ int fprintfcrc(uint32_t *crc, FILE* fp, const char *fmt, ...)
 
     static char *out = NULL;
     static ssize_t outlen = 0;
+    char *tmp;
 
     va_start(ap, fmt);
     len = vsnprintf(NULL, 0, fmt, ap) + 1;
@@ -335,8 +340,10 @@ int fprintfcrc(uint32_t *crc, FILE* fp, const char *fmt, ...)
 	    if (outlen < 128) outlen = 128;
 	}
 
-	out = realloc(out, outlen);
-	if (out == NULL) return -1;
+	tmp = realloc(out, outlen);
+	if (tmp == NULL)
+            return -1;
+        out = tmp;
     }
 
     va_start(ap, fmt);
@@ -793,6 +800,8 @@ int parse_digestline(const char* line, const unsigned int linenum,
 		    fprintf(stderr, "%s: \"%s\" line %d: duplicate symlink file name.\n",
 			    g_progname, gopt_digestfile, linenum);
 
+		    free(fileinfo->symlink);
+		    free(fileinfo);
 		    return -1;
 		}
 
@@ -843,6 +852,8 @@ int parse_digestline(const char* line, const unsigned int linenum,
 		    fprintf(stderr, "%s: \"%s\" line %d: duplicate symlink file name.\n",
 			    g_progname, gopt_digestfile, linenum);
 
+		    free(fileinfo->symlink);
+		    free(fileinfo);
 		    return -1;
 		}
 
@@ -1711,10 +1722,16 @@ bool dirstack_push(const mystatst* st)
     /* add new entry */
     if (dirstacklen >= dirstackmax)
     {
+        struct DirLevel* tmp;
+
 	dirstackmax = dirstackmax * 2;
 	if (dirstackmax < 16) dirstackmax = 16;
 
-	dirstack = realloc(dirstack, sizeof(struct DirLevel) * dirstackmax);
+	tmp = realloc(dirstack, sizeof(struct DirLevel) * dirstackmax);
+        if (!tmp) {
+            return FALSE;
+        }
+        dirstack = tmp;
     }
 
     dirstack[dirstacklen].dev = st->st_dev;
