@@ -426,7 +426,7 @@ bool needescape_filename(char** str)
     char *s, *t, *newstr;
 
     s = *str;
-    while(*s)
+    while(*s != 0)
     {
 	if (*s == '\\' || *s == '\n')
 	    ++needescape;
@@ -440,7 +440,7 @@ bool needescape_filename(char** str)
     t = newstr;
     s = *str;
 
-    while(*s)
+    while(*s != 0)
     {
 	if (*s == '\\')
 	{
@@ -466,6 +466,23 @@ bool needescape_filename(char** str)
 
     return (needescape != 0);
 }
+
+#if ON_WIN32
+
+/**
+ * Replace all backslashes with forward slashes. Used only on Windows.
+ */
+void replace_backslahes_with_slashes(char* s)
+{
+    while(*s != 0)
+    {
+	if (*s == '\\')
+	    *s = '/';
+	++s;
+    }
+}
+
+#endif
 
 /***************************************
  * Functions to calculate file digests *
@@ -1062,6 +1079,11 @@ int parse_digestline(const char* line, const unsigned int linenum,
 		return -1;
 	    }
 	}
+
+#if ON_WIN32
+        /* on Windows: replace backslashes in filename with forward slashes */
+        replace_backslahes_with_slashes(filename);
+#endif
 
 	/* insert fileinfo into filelist */
 
