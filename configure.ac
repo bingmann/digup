@@ -1,7 +1,7 @@
 # -*- mode: autoconf -*-
 
 AC_PREREQ(2.60)
-AC_INIT(digup, 0.6.55)
+AC_INIT(digup, 0.6.57)
 AC_CONFIG_SRCDIR(src/digup.c)
 AC_CONFIG_AUX_DIR(acscripts)
 
